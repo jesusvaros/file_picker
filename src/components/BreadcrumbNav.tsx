@@ -15,22 +15,22 @@ export type Crumb = { id?: string; label: string };
 export function BreadcrumbNav({
   crumbs,
   setBreadcrumbs,
-  setPage
+  setPage,
 }: {
   crumbs: Crumb[];
   setBreadcrumbs: Dispatch<SetStateAction<{ id: string; label: string }[]>>;
   setPage: Dispatch<SetStateAction<string | null>>;
 }) {
-      const goToCrumb = (index: number) => {
-        if (index === 0) {
-          setBreadcrumbs([]);
-          setPage(null);
-          return;
-        }
-        setBreadcrumbs((s) => s.slice(0, index));
-        setPage(null);
-      };
-    
+  const goToCrumb = (index: number) => {
+    if (index === 0) {
+      setBreadcrumbs([]);
+      setPage(null);
+      return;
+    }
+    setBreadcrumbs((s) => s.slice(0, index));
+    setPage(null);
+  };
+
   return (
     <Breadcrumb>
       <BreadcrumbList>
@@ -62,4 +62,3 @@ export function BreadcrumbNav({
     </Breadcrumb>
   );
 }
-

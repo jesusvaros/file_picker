@@ -16,10 +16,8 @@ export function Pager({
   const hasNext = Boolean(nextPage);
 
   return (
-    <div className="flex items-center justify-between mt-3">
-      <div className="text-xs opacity-60">
-        Page: {page ?? "1"}
-      </div>
+    <div className="mt-3 flex items-center justify-between">
+      <div className="text-xs opacity-60">Page: {page ?? "1"}</div>
       <div className="flex gap-2">
         <Button
           variant="outline"
