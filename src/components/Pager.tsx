@@ -19,15 +19,17 @@ export function Pager({
     <div className="mt-3 flex items-center justify-between">
       <div className="text-xs opacity-60">Page: {page ?? "1"}</div>
       <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onReset}
-          disabled={!page}
+        {page && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onReset}
+            disabled={!page}
           title="Reset page"
         >
-          ⏮️ Reset page
+          ⏮️ page 1
         </Button>
+        )}
         <Button
           variant="default"
           size="sm"
