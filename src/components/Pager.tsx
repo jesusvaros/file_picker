@@ -1,0 +1,44 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+
+export function Pager({
+  page,
+  nextPage,
+  onReset,
+  onNext,
+}: {
+  page: string | null;
+  nextPage: string | null | undefined;
+  onReset: () => void;
+  onNext: (page: string | null) => void;
+}) {
+  const hasNext = Boolean(nextPage);
+
+  return (
+    <div className="flex items-center justify-between mt-3">
+      <div className="text-xs opacity-60">
+        Page: {page ?? "1"}
+      </div>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onReset}
+          disabled={!page}
+          title="Reset page"
+        >
+          ⏮️ Reset page
+        </Button>
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => onNext(nextPage ?? null)}
+          disabled={!hasNext}
+        >
+          Next Page ➡️
+        </Button>
+      </div>
+    </div>
+  );
+}

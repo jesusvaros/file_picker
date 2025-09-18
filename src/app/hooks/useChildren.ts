@@ -38,18 +38,18 @@ export function useConnections() {
 export function useChildren(params: {
   connectionId?: string;
   resourceId?: string;
-  cursor?: string | null;
+  page?: string | null;
 }) {
-  const { connectionId, resourceId, cursor } = params;
+  const { connectionId, resourceId, page } = params;
 
   return useQuery({
     enabled: Boolean(connectionId),
-    queryKey: ["children", connectionId, resourceId ?? "root", cursor ?? ""],
+    queryKey: ["children", connectionId, resourceId ?? "root", page ?? ""],
     queryFn: async () => {
       const qs = new URLSearchParams();
       if (connectionId) qs.set("connectionId", connectionId);
       if (resourceId) qs.set("resourceId", resourceId);
-      if (cursor) qs.set("cursor", cursor);
+      if (page) qs.set("page", page);
       const r = await fetch(`/api/stackai/children?${qs.toString()}`);
       if (!r.ok) throw new Error("Error fetching children");
       return (await r.json()) as ChildrenResponse;

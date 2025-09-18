@@ -4,7 +4,7 @@ import { Paginated, StackResource, stackFetch } from "../utils";
 export async function GET(req: NextRequest) {
   const connectionId = req.nextUrl.searchParams.get("connectionId");
   const resourceId = req.nextUrl.searchParams.get("resourceId");
-  const cursor = req.nextUrl.searchParams.get("cursor");
+  const page = req.nextUrl.searchParams.get("page");
 
   if (!connectionId) {
     return NextResponse.json(
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   const q = new URLSearchParams();
   if (resourceId) q.set("resource_id", resourceId);
-  if (cursor) q.set("cursor", cursor);
+  if (page) q.set("page", page);
 
   const path =
     `/connections/${connectionId}/resources/children` +
