@@ -38,13 +38,14 @@ export function useConnections(options?: { enabled?: boolean }) {
 export function useChildren(params: {
   connectionId?: string;
   resourceId?: string;
-  page?: string | null;
+  page: string | null;
+  knowledgeBaseId: string | null;
 }) {
-  const { connectionId, resourceId, page } = params;
+  const { connectionId, resourceId, page, knowledgeBaseId } = params;
 
   return useQuery<Paginated<Resource>>({
     enabled: Boolean(connectionId),
-    queryKey: ["children", connectionId, resourceId ?? "root", page ?? ""],
+    queryKey: ["knowledge-base-children", knowledgeBaseId, resourceId, page ],
     queryFn: async () => {
       const searchParams = new URLSearchParams();
       if (connectionId) searchParams.set("connectionId", connectionId);

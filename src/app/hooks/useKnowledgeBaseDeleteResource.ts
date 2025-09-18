@@ -4,15 +4,15 @@ import type { Paginated, Resource } from "../api/stackai/utils";
 
 export function useKnowledgeBaseDeleteResource({
   knowledgeBaseId,
-  parentResourcePath,
+  resourceId,
   page,
 }: {
   knowledgeBaseId: string | null;
-  parentResourcePath: string;
-  page: string|null;
+  resourceId: string;
+  page: string | null;
 }) {
   const queryClient = useQueryClient();
-  const key = ["knowledge-base-children", knowledgeBaseId, parentResourcePath, page ?? ""];
+  const key = ["knowledge-base-children", knowledgeBaseId, resourceId, page];
   
   return useMutation({
     mutationFn: async (resourcePath: string) => {
@@ -40,10 +40,6 @@ export function useKnowledgeBaseDeleteResource({
 
     onError: (_e, _vars, context) => {
       if (context?.prev) queryClient.setQueryData(key, context.prev);
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: key });
     },
   });
 }

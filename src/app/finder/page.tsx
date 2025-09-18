@@ -22,8 +22,9 @@ export default function Page() {
 
   const { data, isPending, error, isFetching } = useChildren({
     connectionId: connectionId ?? undefined,
-    resourceId: currentResourceId,
+    resourceId: currentResourceId ?? "root",
     page,
+    knowledgeBaseId: kbId,
   });
 
   const items = data?.data ?? [];
@@ -49,13 +50,14 @@ export default function Page() {
     } catch {}
   }, []);
 
-  // Persist state to localStorage when it changes
+  // Persist breadcrumbs to localStorage when it changes
   useEffect(() => {
     try {
       localStorage.setItem("finder_breadcrumbs", JSON.stringify(breadcrumbs));
     } catch {}
   }, [breadcrumbs]);
 
+  // Persist page to localStorage when it changes
   useEffect(() => {
     try {
       if (page) localStorage.setItem("finder_page", page);
@@ -83,7 +85,7 @@ export default function Page() {
             items={items}
             isPending={isPending || isFetching}
             error={error}
-            parentResourcePath={breadcrumbs[breadcrumbs.length - 1]?.label ?? ""}
+            resourceId={currentResourceId ?? "root"}
             kbId={kbId}
             page={page}
             onOpenFolder={(id, label) => {
