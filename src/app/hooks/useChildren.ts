@@ -24,7 +24,7 @@ export type ChildrenResponse = {
   current_cursor?: string | null;
 };
 
-export function useConnections() {
+export function useConnections(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["connections"],
     queryFn: async () => {
@@ -33,6 +33,7 @@ export function useConnections() {
       return (await r.json()) as StackConnection[];
     },
     staleTime: 60_000,
+    enabled: options?.enabled ?? true,
   });
 }
 

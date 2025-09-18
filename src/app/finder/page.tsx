@@ -6,15 +6,15 @@ import { Pager } from "@/components/Pager";
 import { ResourceList } from "@/components/ResourceList";
 import { useEffect, useMemo, useState } from "react";
 import { useChildren, useConnections } from "../hooks/useChildren";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function Page() {
+  const [connectionId, setConnectionId] = useState<string | null>(null);
   const {
     data: connections,
     isPending: loadingConn,
     error: connError,
-  } = useConnections();
-  const connectionId = connections?.[0]?.connection_id;
+  } = useConnections({ enabled: !connectionId });
+  const fetchedConnectionId = connections?.[0]?.connection_id ?? null;
 
   const [breadcrumbs, setBreadcrumbs] = useState<
     { id: string; label: string }[]
@@ -25,7 +25,7 @@ export default function Page() {
   const [page, setPage] = useState<string | null>(null);
 
   const { data, isPending, error, isFetching } = useChildren({
-    connectionId,
+    connectionId: connectionId ?? fetchedConnectionId ?? undefined,
     resourceId: currentResourceId,
     page,
   });
@@ -37,51 +37,56 @@ export default function Page() {
     [breadcrumbs],
   );
 
-  // URL sync: initialize state from URL and keep URL updated with state changes
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  // Initialize from URL on first mount
+  // Initialize state from localStorage on first mount
   useEffect(() => {
     try {
-      const bcParam = searchParams.get("bc");
-      if (bcParam) {
-        const parsed = JSON.parse(bcParam) as { id: string; label: string }[];
-        if (Array.isArray(parsed)) {
-          setBreadcrumbs(parsed);
-        }
-      }
-    } catch {
-      // ignore malformed bc param
+    // connection id
+    const storedConn = localStorage.getItem("connectionId");
+    if (storedConn) setConnectionId(storedConn);
+
+    // breadcrumbs
+    const storedBc = localStorage.getItem("finder_breadcrumbs");
+    if (storedBc) {
+      const parsed = JSON.parse(storedBc) as { id: string; label: string }[];
+      if (Array.isArray(parsed)) setBreadcrumbs(parsed);
     }
-    const p = searchParams.get("page");
-    if (p) setPage(p);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    // page
+    const storedPage = localStorage.getItem("finder_page");
+    if (storedPage) setPage(storedPage);
+    } catch {}
   }, []);
 
-  // Push state to URL whenever breadcrumbs or page change
+  // If we got the connection id from network and none set yet, persist it
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (breadcrumbs.length > 0) {
-      params.set("bc", JSON.stringify(breadcrumbs));
-    } else {
-      params.delete("bc");
+    if (!connectionId && fetchedConnectionId) {
+      setConnectionId(fetchedConnectionId);
+      try {
+        localStorage.setItem("connectionId", fetchedConnectionId);
+      } catch {}
     }
-    if (page) {
-      params.set("page", page);
-    } else {
-      params.delete("page");
-    }
-    router.replace(`${pathname}?${params.toString()}`);
-  }, [breadcrumbs, page, pathname, router, searchParams]);
+  }, [connectionId, fetchedConnectionId]);
+
+  // Persist state to localStorage when it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem("finder_breadcrumbs", JSON.stringify(breadcrumbs));
+    } catch {}
+  }, [breadcrumbs]);
+
+  useEffect(() => {
+    try {
+      if (page) localStorage.setItem("finder_page", page);
+      else localStorage.removeItem("finder_page");
+    } catch {}
+  }, [page]);
 
   return (
     <main className="mx-auto max-w-4xl space-y-4 p-6">
       <Header fetching={isFetching} />
 
-      {loadingConn && <p>Loading connections…</p>}
-      {connError && (
+      {!connectionId && loadingConn && <p>Loading connections…</p>}
+      {!connectionId && connError && (
         <p className="text-red-600">Error connections: {String(connError)}</p>
       )}
 
