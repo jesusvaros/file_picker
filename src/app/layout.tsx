@@ -1,13 +1,13 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Providers } from './providers';
+import { ReactNode } from 'react';
 
 export const metadata: Metadata = {
-  title: 'File Picker',
-  description: 'Google Drive File Picker',
+  title: 'File Picker – StackAI Test',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
