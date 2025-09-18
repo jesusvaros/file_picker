@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 export type StackConnection = {
   connection_id: string;
@@ -15,6 +15,7 @@ export type Resource = {
   inode_path: { path: string };
   updated_at?: string;
   created_at?: string;
+  modified_at?: string;
 };
 
 export type ChildrenResponse = {

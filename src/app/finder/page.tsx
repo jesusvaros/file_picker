@@ -4,8 +4,9 @@ import { BreadcrumbNav, Crumb } from "@/components/BreadcrumbNav";
 import { Header } from "@/components/Header";
 import { Pager } from "@/components/Pager";
 import { ResourceList } from "@/components/ResourceList";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useChildren, useConnections } from "../hooks/useChildren";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function Page() {
   const {
@@ -35,6 +36,45 @@ export default function Page() {
     () => [{ id: undefined, label: "My Files" }, ...breadcrumbs],
     [breadcrumbs],
   );
+
+  // URL sync: initialize state from URL and keep URL updated with state changes
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Initialize from URL on first mount
+  useEffect(() => {
+    try {
+      const bcParam = searchParams.get("bc");
+      if (bcParam) {
+        const parsed = JSON.parse(bcParam) as { id: string; label: string }[];
+        if (Array.isArray(parsed)) {
+          setBreadcrumbs(parsed);
+        }
+      }
+    } catch {
+      // ignore malformed bc param
+    }
+    const p = searchParams.get("page");
+    if (p) setPage(p);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Push state to URL whenever breadcrumbs or page change
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (breadcrumbs.length > 0) {
+      params.set("bc", JSON.stringify(breadcrumbs));
+    } else {
+      params.delete("bc");
+    }
+    if (page) {
+      params.set("page", page);
+    } else {
+      params.delete("page");
+    }
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [breadcrumbs, page, pathname, router, searchParams]);
 
   return (
     <main className="mx-auto max-w-4xl space-y-4 p-6">
@@ -72,3 +112,4 @@ export default function Page() {
     </main>
   );
 }
+

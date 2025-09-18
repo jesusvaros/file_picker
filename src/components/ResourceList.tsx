@@ -2,12 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-
-export type ResourceItem = {
-  resource_id: string;
-  inode_type: "directory" | "file";
-  inode_path: { path: string };
-};
+import { format, parseISO } from "date-fns";
+import { type Resource } from "../app/hooks/useChildren";
 
 export function ResourceList({
   items,
@@ -15,7 +11,7 @@ export function ResourceList({
   error,
   onOpenFolder,
 }: {
-  items: ResourceItem[];
+  items: Resource[];
   isPending: boolean;
   error: unknown;
   onOpenFolder: (id: string, label: string) => void;
@@ -46,11 +42,12 @@ export function ResourceList({
     return inode_type === "directory";
   };
     
+  console.log(items);
 
   return (
     <div className="rounded border">
       <ul className="divide-y">
-        {items.map(({ resource_id, inode_type, inode_path }) => (
+        {items.map(({ resource_id, inode_type, inode_path, modified_at}) => (
           <li
             key={resource_id}
             className={`hover:bg-muted/40 ${isDirectory(inode_type) ? "cursor-pointer" : ""} flex items-center justify-between p-3`}
@@ -59,6 +56,11 @@ export function ResourceList({
             <div className="flex items-center gap-2">
               <span>{isDirectory(inode_type) ? "📁" : "📄"}</span>
               <span className="font-medium">{inode_path.path}</span>
+              {modified_at && (
+                <span className="text-xs opacity-60">
+                  {format(parseISO(modified_at), "PP")}
+                </span>
+              )}
             </div>
 
             {isDirectory(inode_type) ? (
@@ -81,3 +83,4 @@ export function ResourceList({
     </div>
   );
 }
+
