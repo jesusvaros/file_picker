@@ -101,6 +101,9 @@ export default function Page() {
             items={items}
             isPending={isPending || isFetching}
             error={error}
+            knowledgeBaseId={connectionId}
+            parentResourcePath={breadcrumbs[breadcrumbs.length - 1]?.label ?? ""}
+            page={page}
             onOpenFolder={(id, label) => {
               setBreadcrumbs((s) => [...s, { id, label }]);
               setPage(null);

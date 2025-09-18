@@ -1,6 +1,7 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { Paginated, Resource } from "../api/stackai/utils";
 
 export type StackConnection = {
   connection_id: string;
@@ -9,28 +10,14 @@ export type StackConnection = {
   updated_at: string;
 };
 
-export type Resource = {
-  resource_id: string;
-  inode_type: "directory" | "file";
-  inode_path: { path: string };
-  updated_at?: string;
-  created_at?: string;
-  modified_at?: string;
-};
-
-export type ChildrenResponse = {
-  data: Resource[];
-  next_cursor?: string | null;
-  current_cursor?: string | null;
-};
 
 export function useConnections(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["connections"],
     queryFn: async () => {
-      const r = await fetch("/api/stackai/connections");
-      if (!r.ok) throw new Error("Error fetching connections");
-      return (await r.json()) as StackConnection[];
+      const response = await fetch("/api/stackai/connections");
+      if (!response.ok) throw new Error("Error fetching connections");
+      return (await response.json()) as StackConnection[];
     },
     staleTime: 60_000,
     enabled: options?.enabled ?? true,
@@ -48,13 +35,14 @@ export function useChildren(params: {
     enabled: Boolean(connectionId),
     queryKey: ["children", connectionId, resourceId ?? "root", page ?? ""],
     queryFn: async () => {
-      const qs = new URLSearchParams();
-      if (connectionId) qs.set("connectionId", connectionId);
-      if (resourceId) qs.set("resourceId", resourceId);
-      if (page) qs.set("page", page);
-      const r = await fetch(`/api/stackai/children?${qs.toString()}`);
-      if (!r.ok) throw new Error("Error fetching children");
-      return (await r.json()) as ChildrenResponse;
+      const searchParams = new URLSearchParams();
+      if (connectionId) searchParams.set("connectionId", connectionId);
+      if (resourceId) searchParams.set("resourceId", resourceId);
+      if (page) searchParams.set("page", page);
+      
+      const response = await fetch(`/api/stackai/children?${searchParams.toString()}`);
+      if (!response.ok) throw new Error("Error fetching children");
+      return (await response.json()) as Paginated<Resource>;
     },
     placeholderData: keepPreviousData,
   });

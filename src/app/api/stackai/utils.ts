@@ -1,9 +1,10 @@
-export type StackResource = {
+
+export type Resource = {
   resource_id: string;
   inode_type: "directory" | "file";
   inode_path: { path: string };
   created_at?: string;
-  updated_at?: string;
+  modified_at?: string;
 };
 
 export type Paginated<T> = {
@@ -50,23 +51,46 @@ export async function getAccessToken() {
   return token;
 }
 
-export async function stackFetch<T>(
+export class UpstreamError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public body?: string
+  ) { super(message); }
+}
+
+export async function stackFetch<T = unknown>(
   path: string,
-  init?: RequestInit,
+  init?: RequestInit
 ): Promise<T> {
   const token = await getAccessToken();
-  const BASE = process.env.STACK_AI_BACKEND_URL!;
-  const resp = await fetch(`${BASE}${path}`, {
+  const BASE = process.env.STACK_AI_BACKEND_URL;
+  const url = `${BASE}${path.startsWith("/") ? path : `/${path}`}`;
+
+  const response  = await fetch(url, {
     ...init,
     headers: {
+      Accept: "application/json",
       ...(init?.headers ?? {}),
       Authorization: `Bearer ${token}`,
     },
     cache: "no-store",
   });
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`StackFetch ${path} -> ${resp.status} ${text}`);
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    let msg = `Upstream ${response.status}`;
+    try {
+      const json = text ? JSON.parse(text) : undefined;
+      msg = (json?.error as string) || (json?.detail as string) || (json?.message as string) || msg;
+    } catch {}
+    throw new UpstreamError(`${msg} @ ${url}`, response.status, text);
   }
-  return resp.json();
+
+  // Handle empty bodies (e.g., 204 from DELETE)
+  const contentLength = response.headers.get("content-length");
+  if (response.status === 204 || contentLength === "0") {
+    return undefined as T;
+  }
+  return (await response.json()) as T;
 }

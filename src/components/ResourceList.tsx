@@ -1,21 +1,31 @@
 "use client";
 
+import { type Resource } from "@/app/api/stackai/utils";
+import { useKnowledgeBaseDeleteResource } from "@/app/hooks/useKnowledgeBaseDeleteResource";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
-import { type Resource } from "../app/hooks/useChildren";
 
 export function ResourceList({
   items,
   isPending,
   error,
+  knowledgeBaseId,
+  parentResourcePath,
+  page,
   onOpenFolder,
 }: {
   items: Resource[];
   isPending: boolean;
   error: unknown;
+  knowledgeBaseId: string;
+  parentResourcePath: string;
+  page: string|null;
   onOpenFolder: (id: string, label: string) => void;
 }) {
+  const { mutate: deleteResource, isPending: isDeleting } =
+    useKnowledgeBaseDeleteResource({ knowledgeBaseId, parentResourcePath, page });
+
   if (isPending)
     return (
       <div className="rounded border ">
@@ -32,17 +42,21 @@ export function ResourceList({
         </ul>
       </div>
     );
+  
   if (error)
     return (
       <div className="rounded border p-4 text-red-600">
         Error: {String((error as Error)?.message ?? error)}
       </div>
     );
+
+  
+  
   const isDirectory = (inode_type: "directory" | "file") => {
     return inode_type === "directory";
   };
-    
-  console.log(items);
+  
+
 
   return (
     <div className="rounded border">
@@ -71,8 +85,23 @@ export function ResourceList({
               >
                 Open
               </Button>
+              
             ) : (
+              <div className="flex items-center gap-2">
               <span className="text-xs opacity-60">File</span>
+              <Button
+                variant="link"
+                size="sm"
+                className="px-0 text-red-600 cursor-pointer"
+                disabled={isDeleting}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteResource(inode_path.path);
+                }}
+              >
+                {isDeleting ? "Deleting…" : "Delete"}
+              </Button>
+              </div>
             )}
           </li>
         ))}
