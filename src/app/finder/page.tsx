@@ -5,16 +5,10 @@ import { Header } from "@/components/Header";
 import { Pager } from "@/components/Pager";
 import { ResourceList } from "@/components/ResourceList";
 import { useEffect, useMemo, useState } from "react";
-import { useChildren, useConnections } from "../hooks/useChildren";
+import { useChildren, useConnectionId } from "../hooks/useChildren";
 
 export default function Page() {
-  const [connectionId, setConnectionId] = useState<string | null>(null);
-  const {
-    data: connections,
-    isPending: loadingConn,
-    error: connError,
-  } = useConnections({ enabled: !connectionId });
-  const fetchedConnectionId = connections?.[0]?.connection_id ?? null;
+  const { connectionId, isPending: loadingConn, error: connError } = useConnectionId();
 
   const [breadcrumbs, setBreadcrumbs] = useState<
     { id: string; label: string }[]
@@ -25,7 +19,7 @@ export default function Page() {
   const [page, setPage] = useState<string | null>(null);
 
   const { data, isPending, error, isFetching } = useChildren({
-    connectionId: connectionId ?? fetchedConnectionId ?? undefined,
+    connectionId: connectionId ?? undefined,
     resourceId: currentResourceId,
     page,
   });
@@ -40,10 +34,6 @@ export default function Page() {
   // Initialize state from localStorage on first mount
   useEffect(() => {
     try {
-    // connection id
-    const storedConn = localStorage.getItem("connectionId");
-    if (storedConn) setConnectionId(storedConn);
-
     // breadcrumbs
     const storedBc = localStorage.getItem("finder_breadcrumbs");
     if (storedBc) {
@@ -56,16 +46,6 @@ export default function Page() {
     if (storedPage) setPage(storedPage);
     } catch {}
   }, []);
-
-  // If we got the connection id from network and none set yet, persist it
-  useEffect(() => {
-    if (!connectionId && fetchedConnectionId) {
-      setConnectionId(fetchedConnectionId);
-      try {
-        localStorage.setItem("connectionId", fetchedConnectionId);
-      } catch {}
-    }
-  }, [connectionId, fetchedConnectionId]);
 
   // Persist state to localStorage when it changes
   useEffect(() => {

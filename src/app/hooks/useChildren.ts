@@ -12,15 +12,26 @@ export type StackConnection = {
 
 
 export function useConnections(options?: { enabled?: boolean }) {
-  return useQuery({
+  const hasStored =
+    typeof window !== "undefined" && Boolean(localStorage.getItem("connectionId"));
+  const enabled = (options?.enabled ?? true) && !hasStored;
+
+  return useQuery<StackConnection[]>({
     queryKey: ["connections"],
     queryFn: async () => {
       const response = await fetch("/api/stackai/connections");
       if (!response.ok) throw new Error("Error fetching connections");
-      return (await response.json()) as StackConnection[];
+      const data = (await response.json()) as StackConnection[];
+      const id = data?.[0]?.connection_id;
+      if (id) {
+        try {
+          localStorage.setItem("connectionId", id);
+        } catch {}
+      }
+      return data;
     },
     staleTime: 60_000,
-    enabled: options?.enabled ?? true,
+    enabled,
   });
 }
 
@@ -31,7 +42,7 @@ export function useChildren(params: {
 }) {
   const { connectionId, resourceId, page } = params;
 
-  return useQuery({
+  return useQuery<Paginated<Resource>>({
     enabled: Boolean(connectionId),
     queryKey: ["children", connectionId, resourceId ?? "root", page ?? ""],
     queryFn: async () => {
@@ -46,4 +57,16 @@ export function useChildren(params: {
     },
     placeholderData: keepPreviousData,
   });
+}
+
+export function useConnectionId() {
+  const stored =
+    typeof window !== "undefined" ? localStorage.getItem("connectionId") : null;
+  const { data, isPending, error } = useConnections({ enabled: !stored });
+  const connectionId = stored ?? data?.[0]?.connection_id ?? null;
+  return {
+    connectionId,
+    isPending: !stored && isPending,
+    error,
+  };
 }
