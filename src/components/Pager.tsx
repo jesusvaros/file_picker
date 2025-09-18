@@ -15,6 +15,8 @@ export function Pager({
 }) {
   const hasNext = Boolean(nextPage);
 
+  if (!hasNext) return null;
+
   return (
     <div className="mt-3 flex items-center justify-between">
       <div className="text-xs opacity-60">Page: {page ?? "1"}</div>
@@ -32,7 +34,7 @@ export function Pager({
         )}
         <Button
           variant="default"
-          size="sm"
+          size="lg"
           onClick={() => onNext(nextPage ?? null)}
           disabled={!hasNext}
         >

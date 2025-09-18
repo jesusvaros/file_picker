@@ -18,6 +18,7 @@ export default function Page() {
   const [breadcrumbs, setBreadcrumbs] = useState<
     { id: string; label: string }[]
   >([]);
+
   const currentResourceId = breadcrumbs[breadcrumbs.length - 1]?.id;
 
   const [page, setPage] = useState<string | null>(null);
@@ -31,7 +32,7 @@ export default function Page() {
   const items = data?.data ?? [];
 
   const crumbs: Crumb[] = useMemo(
-    () => [{ id: undefined, label: "Root" }, ...breadcrumbs],
+    () => [{ id: undefined, label: "My Files" }, ...breadcrumbs],
     [breadcrumbs],
   );
 
@@ -53,7 +54,7 @@ export default function Page() {
           />
           <ResourceList
             items={items}
-            isPending={isPending}
+            isPending={isPending || isFetching}
             error={error}
             onOpenFolder={(id, label) => {
               setBreadcrumbs((s) => [...s, { id, label }]);
