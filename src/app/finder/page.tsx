@@ -1,11 +1,11 @@
 "use client";
 
+import { BreadcrumbNav, Crumb } from "@/components/BreadcrumbNav";
+import { Header } from "@/components/Header";
+import { Pager } from "@/components/Pager";
+import { ResourceList } from "@/components/ResourceList";
 import { useMemo, useState } from "react";
 import { useChildren, useConnections } from "../hooks/useChildren";
-import { Header } from "@/components/Header";
-import { BreadcrumbNav, Crumb } from "@/components/BreadcrumbNav";
-import { ResourceList } from "@/components/ResourceList";
-import { Pager } from "@/components/Pager";
 
 export default function Page() {
   const {
