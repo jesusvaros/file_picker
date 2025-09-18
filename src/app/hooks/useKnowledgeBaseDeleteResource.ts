@@ -7,15 +7,18 @@ export function useKnowledgeBaseDeleteResource({
   parentResourcePath,
   page,
 }: {
-  knowledgeBaseId: string;
+  knowledgeBaseId: string | null;
   parentResourcePath: string;
   page: string|null;
 }) {
-  const queryClient = useQueryClient(); 
+  const queryClient = useQueryClient();
   const key = ["knowledge-base-children", knowledgeBaseId, parentResourcePath, page ?? ""];
-
+  
   return useMutation({
     mutationFn: async (resourcePath: string) => {
+      if (!knowledgeBaseId) {
+        throw new Error("Missing knowledge base id");
+      }
       const searchParams = new URLSearchParams({ resource_path: resourcePath });
       const response = await fetch(
         `/api/stackai/kb/${knowledgeBaseId}/resources?${searchParams.toString()}`,
@@ -25,6 +28,7 @@ export function useKnowledgeBaseDeleteResource({
       return resourcePath;
     },
 
+    // Optimistic update of cache 
     onMutate: async (resourcePath) => {
       await queryClient.cancelQueries({ queryKey: key }); // Prevents refetching of data
       const prev = queryClient.getQueryData<Paginated<Resource>>(key); //Snapshot for rollback

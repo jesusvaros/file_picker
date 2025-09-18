@@ -6,9 +6,11 @@ import { Pager } from "@/components/Pager";
 import { ResourceList } from "@/components/ResourceList";
 import { useEffect, useMemo, useState } from "react";
 import { useChildren, useConnectionId } from "../hooks/useChildren";
+import { useKbId } from "../hooks/useKbId";
 
 export default function Page() {
   const { connectionId, isPending: loadingConn, error: connError } = useConnectionId();
+  const { kbId } = useKbId(connectionId);
 
   const [breadcrumbs, setBreadcrumbs] = useState<
     { id: string; label: string }[]
@@ -81,8 +83,8 @@ export default function Page() {
             items={items}
             isPending={isPending || isFetching}
             error={error}
-            knowledgeBaseId={connectionId}
             parentResourcePath={breadcrumbs[breadcrumbs.length - 1]?.label ?? ""}
+            kbId={kbId}
             page={page}
             onOpenFolder={(id, label) => {
               setBreadcrumbs((s) => [...s, { id, label }]);

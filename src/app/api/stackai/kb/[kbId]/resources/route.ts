@@ -16,7 +16,7 @@ export async function DELETE(
   }
 
   await stackFetch(
-    `/knowledge_bases/${'1Rlbkh6yA1VG97Gv1aiBhVeB5Mv6s6Ncm'}/resources?resource_path=${encodeURIComponent(resourcePath)}`,
+    `/knowledge_bases/${kbId}/resources?resource_path=${encodeURIComponent(resourcePath)}`,
     { method: "DELETE" }
   );
 

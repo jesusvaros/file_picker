@@ -2,26 +2,12 @@
 
 import Link from "next/link";
 import { useConnectionId } from "./hooks/useChildren";
-import { useKbId, type CreateKbBody } from "./hooks/useKbId";
+import { useKbId } from "./hooks/useKbId";
 
 export default function Home() {
   const { connectionId, isPending, error } = useConnectionId();
-  const createBody: CreateKbBody | null = connectionId
-    ? {
-        connection_id: connectionId,
-        connection_source_ids: [],
-        indexing_params: {
-          ocr: false,
-          unstructured: true,
-          embedding_params: { embedding_model: "text-embedding-ada-002", api_key: null },
-          chunker_params: { chunk_size: 1500, chunk_overlap: 500, chunker: "sentence" },
-        },
-        org_level_role: null,
-        cron_job_id: null,
-      }
-    : null;
-  
-  const { kbId, loading, error: kbError } = useKbId(createBody);
+
+  const { kbId, loading, error: kbError } = useKbId(connectionId);
 
   return (
     <main className="p-6 space-y-4">

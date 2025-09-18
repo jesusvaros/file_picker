@@ -10,21 +10,23 @@ export function ResourceList({
   items,
   isPending,
   error,
-  knowledgeBaseId,
   parentResourcePath,
   page,
   onOpenFolder,
+  kbId,
 }: {
   items: Resource[];
   isPending: boolean;
   error: unknown;
-  knowledgeBaseId: string;
   parentResourcePath: string;
   page: string|null;
   onOpenFolder: (id: string, label: string) => void;
+  kbId: string | null;
 }) {
+
   const { mutate: deleteResource, isPending: isDeleting } =
-    useKnowledgeBaseDeleteResource({ knowledgeBaseId, parentResourcePath, page });
+    useKnowledgeBaseDeleteResource({ knowledgeBaseId: kbId, parentResourcePath, page });
+
 
   if (isPending)
     return (
@@ -88,12 +90,11 @@ export function ResourceList({
               
             ) : (
               <div className="flex items-center gap-2">
-              <span className="text-xs opacity-60">File</span>
               <Button
                 variant="link"
                 size="sm"
                 className="px-0 text-red-600 cursor-pointer"
-                disabled={isDeleting}
+                disabled={isDeleting || !kbId}
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteResource(inode_path.path);
@@ -101,6 +102,8 @@ export function ResourceList({
               >
                 {isDeleting ? "Deleting…" : "Delete"}
               </Button>
+
+              <span className="text-xs opacity-60">File</span>
               </div>
             )}
           </li>

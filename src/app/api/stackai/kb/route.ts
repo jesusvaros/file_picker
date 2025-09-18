@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { stackFetch } from "../utils";
 
 export async function GET(req: NextRequest) {
-  const u = new URL(req.url);
-  const qs = u.searchParams.toString();
-  const path = `/knowledge_bases${qs ? `?${qs}` : ""}`;
+  const url = new URL(req.url);
+  const searchParams = url.searchParams.toString();
+  const path = `/knowledge_bases${searchParams ? `?${searchParams}` : ""}`;
 
   const data = await stackFetch(path, { method: "GET" });
   return NextResponse.json(data);
