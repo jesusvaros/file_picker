@@ -2,6 +2,7 @@
 import { useAppContext } from "@/app/providers";
 import { useMutation } from "@tanstack/react-query";
 
+
 type IndexingParams = { ocr: boolean; unstructured: boolean };
 
 type CreateKbResponse = {
@@ -25,7 +26,6 @@ export function useCreateKbWithResources() {
       orgId: string;
     }): Promise<CreateKbResponse> => {
       
-    
       if (!connectionId) throw new Error("Missing connectionId");
       if (!orgId) throw new Error("Missing orgId");
       if (!resourceIds?.length) throw new Error("No resources selected");
@@ -64,9 +64,9 @@ export function useCreateKbWithResources() {
 
       return kb;
     },
-
+  
     onSuccess: (kb) => {  
-        setKbId(kb.knowledge_base_id);
+      setKbId(kb.knowledge_base_id);
     },
   });
 }

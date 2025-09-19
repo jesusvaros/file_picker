@@ -34,8 +34,6 @@ export function useConnectionSoftDelete({
   const qc = useQueryClient();
   const key = [queryKeyBase_children, connectionId, currentResourceId, page];
 
-  console.log("key", key);
-
   return useMutation({
     mutationFn: async (resourceId: string) => {
       return resourceId;

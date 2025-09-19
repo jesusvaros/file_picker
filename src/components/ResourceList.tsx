@@ -3,41 +3,52 @@
 import { type Resource } from "@/app/api/stackai/utils";
 import { useConnectionSoftDelete } from "@/app/hooks/useChildrenSoftDelete";
 import { useCreateKbWithResources } from "@/app/hooks/useCreateKbWithResources";
+import { useKbChildren } from "@/app/hooks/useKbChildren";
 import { useKbDeleteResource } from "@/app/hooks/useKbDeleteResource";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function ResourceList({
   items,
   isPending,
   error,
-  resourceId,
   page,
   onOpenFolder,
   connectionId,
   orgId,
+  breadcrumbs,
 }: {
   items: Resource[];
   isPending: boolean;
   error: unknown;
-  resourceId: string;
   page: string|null;
   onOpenFolder: (id: string, label: string) => void;
-
   connectionId: string;
   orgId: string;
+  breadcrumbs: { id: string; label: string }[];
 }) {
+  const currentResourceId = breadcrumbs[breadcrumbs.length - 1]?.id;
+
+  const { mutate: deleteResource } = useKbDeleteResource({ resourceId: currentResourceId, page });
+  const { mutate:createKbwithResources, error: indexError,isPending: isCreatingKb } = useCreateKbWithResources();
+
+  const currentResourcePath = breadcrumbs[breadcrumbs.length - 1]?.label;
+
+  const { data: childrenKb } = useKbChildren({currentResourcePath: currentResourcePath , page});
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const { mutate: deleteResource } = useKbDeleteResource({ resourceId, page });
-  const { mutate:createKbwithResources, isPending: isIndexPending, error: indexError } = useCreateKbWithResources();
+  useEffect(() => {
+    setSelectedIds(childrenKb?.data.map((i) => i.resource_id) ?? []);
+  }, [childrenKb]);
 
   const { mutate: softDelete } = useConnectionSoftDelete({
     connectionId,
-    currentResourceId: resourceId,
+    currentResourceId: currentResourceId,
     page,
   });
  
@@ -56,7 +67,7 @@ export function ResourceList({
     });
   };
       
-  if (isPending || isIndexPending)
+  if (isPending)
     return (
       <div className="rounded border ">
         <ul className="divide-y">
@@ -80,6 +91,7 @@ export function ResourceList({
       </div>
     );
 
+    console.log(childrenKb?.data,items)
   
   
   const isDirectory = (inode_type: "directory" | "file") => {
@@ -103,7 +115,7 @@ export function ResourceList({
           <Button
             variant="default"
             size="sm"
-            disabled={!selectedIds.length}
+            disabled={!selectedIds.length || isCreatingKb}
             onClick={onIndexClick}
           >
             Index selected ({selectedIds.length})
@@ -125,6 +137,8 @@ export function ResourceList({
                 onClick={(e) => e.stopPropagation()}
               />
               <span>{isDirectory(inode_type) ? "📁" : "📄"}</span>
+              {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) ? 
+              <Badge variant="default" className="bg-blue-500">Indexed</Badge> : ""}
               <span className="font-medium">{inode_path.path}</span>
               {modified_at && (
                 <span className="text-xs opacity-60">

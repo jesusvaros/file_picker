@@ -7,7 +7,6 @@ import { ResourceList } from "@/components/ResourceList";
 import { useEffect, useMemo, useState } from "react";
 import { useChildren } from "../hooks/useChildren";
 import { useConnectionId } from "../hooks/useConnections";
-import { useKbChildren } from "../hooks/useKbChildren";
 
 export default function Page() {
   const { connectionId, orgId, isPending: loadingConn, error: connError, data: connections } = useConnectionId();
@@ -17,7 +16,6 @@ export default function Page() {
   >([]);
 
   const currentResourceId = breadcrumbs[breadcrumbs.length - 1]?.id;
-  const currentResourcePath = breadcrumbs[breadcrumbs.length - 1]?.label;
 
   const [page, setPage] = useState<string | null>(null);
 
@@ -26,10 +24,6 @@ export default function Page() {
     currentResourceId: currentResourceId,
     page,
   });
-
-  const { data: childrenKb, isFetching: isFetchingKb } = useKbChildren({currentResourcePath: currentResourcePath , page});
-
-  const items = data?.data ?? [];
 
   const crumbs: Crumb[] = useMemo(
     () => [{ id: undefined, label: "My Files" }, ...breadcrumbs],
@@ -84,10 +78,10 @@ export default function Page() {
             setPage={setPage}
           />
           <ResourceList
-            items={items}
+            items={data?.data ?? []}
             isPending={isPending || isFetching}
             error={error}
-            resourceId={currentResourceId}
+            breadcrumbs={breadcrumbs}
             page={page}
             connectionId={connectionId}
             orgId={orgId}

@@ -12,8 +12,6 @@ export function useChildren(params: {
   const { connectionId, currentResourceId, page } = params;
   const key = [queryKeyBase_children, connectionId, currentResourceId, page];
 
-  console.log("key2", key);
-
   return useQuery<Paginated<Resource>>({
     enabled: Boolean(connectionId),
     queryKey: key,

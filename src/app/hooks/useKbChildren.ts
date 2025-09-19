@@ -1,27 +1,14 @@
-// hooks/useKbChildren.ts
 "use client";
 import { useAppContext } from "@/app/providers";
 import { useQuery } from "@tanstack/react-query";
+import { Paginated, Resource } from "../api/stackai/utils";
 
-export type KBItem = {
-  resource_id: string;
-  inode_type: "file" | "directory";
-  inode_path: { path: string };
-  status?: "pending" | "indexed" | "failed";
-  modified_at?: string;
-};
-
-export type Paginated<T> = {
-  data: T[];
-  next_cursor?: string | null;
-  current_cursor?: string | null;
-};
 
 export function useKbChildren({ currentResourcePath = "/", page}: {currentResourcePath?: string, page?: string | null}) {
   const { kbId: kbIdCtx } = useAppContext();
   const key = ["kb-children", kbIdCtx, currentResourcePath, page];
 
-  return useQuery<Paginated<KBItem>>({
+  return useQuery<Paginated<Resource>>({
     queryKey: key,
     enabled: Boolean(kbIdCtx),
     queryFn: async () => {
