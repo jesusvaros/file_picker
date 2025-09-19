@@ -5,7 +5,7 @@ import { useKbDeleteResource } from "@/app/hooks/useKbDeleteResource";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { IndexedBadge } from "./IndexedBadge";
 import { ResourceItem } from "./ResourceItem";
 
@@ -42,11 +42,10 @@ export function ResourceAccordion({
   parentResourceId,
   parentResourcePath,
 }: ResourceAccordionProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const { resource_id, inode_type, inode_path } = item;
 
-  // Only fetch children when accordion is opened and it's a directory
-  const shouldFetchChildren = isOpen && inode_type === "directory";
+  // Only fetch children when it's a directory (accordion will handle lazy loading)
+  const shouldFetchChildren = inode_type === "directory";
   const { mutate: deleteResource } = useKbDeleteResource({ page: null, resource_path: inode_path.path, parentResourcePath: parentResourcePath ?? "" });
   
   const { 
@@ -106,10 +105,12 @@ export function ResourceAccordion({
   return (
     <div className={`${level > 0 ? 'ml-4 border-l border-gray-200 pl-4' : ''}`}>
       <Accordion type="single" collapsible>
-        <AccordionItem value={resource_id} className="border-none" onClick={() => setIsOpen(!isOpen)}>
-          <div className="flex items-center">
+        <AccordionItem value={resource_id} className="border-none">
+          <AccordionTrigger className="flex items-center w-full hover:no-underline hover:bg-muted/40 p-0 pr-4 [&[data-state=open]>svg]:rotate-180 cursor-pointer">
             {/* Directory item with checkbox */}
-            <div className="flex-1 flex items-center gap-2 p-3 hover:bg-muted/40">
+            <div 
+              className="flex-1 flex items-center gap-2 p-3"
+            >
               {showCheckbox && (
                 <Checkbox
                   checked={isSelected}
@@ -127,14 +128,7 @@ export function ResourceAccordion({
                 <IndexedBadge onDelete={deleteResource} isDirectory={true} />
               )}
             </div>
-            
-            {/* Accordion trigger */}
-            <AccordionTrigger 
-              className="hover:no-underline p-2"
-            >
-              <span className="sr-only">Toggle {inode_path.path}</span>
-            </AccordionTrigger>
-          </div>
+          </AccordionTrigger>
           
           <AccordionContent>
             {isLoadingChildren && shouldFetchChildren && (

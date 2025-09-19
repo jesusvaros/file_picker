@@ -27,11 +27,13 @@ export function ResourceListHeader({
         <>
           <div className="text-sm opacity-70">
             {itemsCount} items
+            
           </div>
           <Button
+            size="lg"
             variant="default"
-            size="sm"
             onClick={onStartIndexing}
+            className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-xl cursor-pointer"
           >
             Start Indexing
           </Button>
@@ -49,16 +51,18 @@ export function ResourceListHeader({
             )}
             <Button
               variant="outline"
-              size="sm"
+              size="lg"
               onClick={onCancelSelection}
+              className="rounded-xl cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               variant="default"
-              size="sm"
+              size="lg"
               disabled={!selectedCount || isCreatingKb}
               onClick={onIndexClick}
+              className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-xl cursor-pointer"
             >
               Index selected ({selectedCount})
             </Button>

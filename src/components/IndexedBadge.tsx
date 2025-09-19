@@ -12,7 +12,7 @@ export function IndexedBadge({ onDelete, isDirectory = false }: IndexedBadgeProp
           e.stopPropagation();
           onDelete();
         }}
-        className={`relative h-6 px-2 py-0 ${isDirectory ? 'w-24 cursor-default' : 'w-16 cursor-not-allowed'} flex items-center justify-center bg-blue-500 text-white text-xs rounded transition-colors duration-300 group-hover:bg-red-500 overflow-hidden`}
+        className={` w-24 relative h-6 px-2 py-0 ${isDirectory ? ' cursor-default' : ' cursor-pointer'} flex items-center justify-center bg-blue-500 text-white text-xs rounded transition-colors duration-300 group-hover:bg-red-500 overflow-hidden `}
       >
         <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:-translate-y-6 font-medium">
           Indexed
