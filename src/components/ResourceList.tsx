@@ -1,7 +1,7 @@
 "use client";
 
 import { type Resource } from "@/app/api/stackai/utils";
-import { useIndexExistingResources } from "@/app/hooks/useIndexExistingResources";
+import { useCreateKbWithResources } from "@/app/hooks/useCreateKbWithResources";
 import { useKnowledgeBaseDeleteResource } from "@/app/hooks/useKnowledgeBaseDeleteResource";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -35,7 +35,7 @@ export function ResourceList({
   const { mutate: deleteResource } =
     useKnowledgeBaseDeleteResource({ knowledgeBaseId: kbId, resourceId, page });
 
-  const { mutate:createKbwithResources, isPending: isIndexPending, error: indexError } = useIndexExistingResources();
+  const { mutate:createKbwithResources, isPending: isIndexPending, error: indexError } = useCreateKbWithResources();
  
   const toggleSelected = (id: string) => {
     setSelectedIds((prev) =>

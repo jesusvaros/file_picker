@@ -29,7 +29,7 @@ export default function Page() {
     knowledgeBaseId: kbId,
   });
 
-  const { data: childrenKb, isFetching: isFetchingKb } = useKbChildren({kbId, currentResourcePath: currentResourcePath , page});
+  const { data: childrenKb, isFetching: isFetchingKb } = useKbChildren({kbId:'130fe322-c083-42d1-9af1-c524cc452b84', currentResourcePath: currentResourcePath , page});
 
   console.log(childrenKb,isFetchingKb)
 

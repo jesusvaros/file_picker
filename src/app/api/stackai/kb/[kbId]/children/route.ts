@@ -6,7 +6,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ kbId
   const { kbId } = await params;
 
   const resource_path = req.nextUrl.searchParams.get("resource_path");
-  const cursor = req.nextUrl.searchParams.get("page");
+  const cursor = req.nextUrl.searchParams.get("cursor");
 
   if (!resource_path) {
     return NextResponse.json(

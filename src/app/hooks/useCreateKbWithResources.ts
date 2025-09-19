@@ -8,7 +8,7 @@ type CreateKbResponse = {
   created_at?: string;
 };
 
-export function useIndexExistingResources() {
+export function useCreateKbWithResources() {
   return useMutation({
     mutationFn: async ({
       connectionId,
@@ -64,7 +64,7 @@ export function useIndexExistingResources() {
     // set new kbId in localStorage
     onSuccess: (kb) => {
       try {
-        localStorage.setItem("activeKbId", kb.knowledge_base_id);
+        localStorage.setItem("knowledge_base_id", kb.knowledge_base_id);
       } catch {}
     },
   });
