@@ -4,7 +4,6 @@ import { type Resource } from "@/app/api/stackai/utils";
 import { useConnectionSoftDelete } from "@/app/hooks/useChildrenSoftDelete";
 import { useCreateKbWithResources } from "@/app/hooks/useCreateKbWithResources";
 import { useKbChildren } from "@/app/hooks/useKbChildren";
-import { useKbDeleteResource } from "@/app/hooks/useKbDeleteResource";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ResourceAccordion } from "./ResourceAccordion";
 import { ResourceListHeader } from "./ResourceListHeader";
@@ -25,17 +24,13 @@ export function ResourceList({
   connectionId: string;
   orgId: string;
 }) {
-
-  const { mutate: deleteResource } = useKbDeleteResource({ page });
-  const { mutate: createKbwithResources, error: indexError, isPending: isCreatingKb } = useCreateKbWithResources();
-
-
   //ok
   const { data: childrenKb } = useKbChildren({ page, resourcePath: '/' });
   const { mutate: softDelete } = useConnectionSoftDelete({
     connectionId,
     page,
   });
+  const { mutate: createKbwithResources, error: indexError, isPending: isCreatingKb } = useCreateKbWithResources();
   
 
 
@@ -109,13 +104,13 @@ export function ResourceList({
             isSelected={isItemSelected(item.resource_id)}
             childrenKb={childrenKb}
             onToggleSelected={toggleSelected}
-            onDeleteResource={deleteResource}
             onSoftDelete={softDelete}
             selectedResources={selectedResources}
             connectionId={connectionId}
             registerItems={registerItems}
             isItemSelected={isItemSelected}
             parentResourceId={'/'}
+            parentResourcePath={'/'}
           />
         ))}
         

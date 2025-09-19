@@ -5,35 +5,40 @@ import { useAppContext } from "../providers";
 
 export function useKbDeleteResource({
   page,
+  resource_path,
+  parentResourcePath,
 }: {
   page: string | null;
+  resource_path: string;
+  parentResourcePath: string;
 }) {
   const queryClient = useQueryClient();
   const { kbId } = useAppContext();
-  const key = ["knowledge-base-children", kbId, "/", page]; // Use root path since no breadcrumbs
+  const key = ["knowledge-base-children", kbId, resource_path, page];
+  const kbChildrenKey = ["kb-children", kbId, parentResourcePath, page];
   
   return useMutation({
-    mutationFn: async (resourcePath: string) => {
+    mutationFn: async () => {
       if (!kbId) {
         throw new Error("Missing knowledge base id");
       }
-      const searchParams = new URLSearchParams({ resource_path: resourcePath });
+      const searchParams = new URLSearchParams({ resource_path: resource_path });
       const response = await fetch(
         `/api/stackai/kb/${kbId}/resources?${searchParams.toString()}`,
         { method: "DELETE" }
       );
       if (!response.ok) throw new Error("Delete failed");
-      return resourcePath;
+      queryClient.refetchQueries({ queryKey: kbChildrenKey });
+      return resource_path;
     },
 
     // Optimistic update of cache 
-    onMutate: async (resourcePath) => {
-      await queryClient.cancelQueries({ queryKey: key }); // Prevents refetching of data
-      const prev = queryClient.getQueryData<Paginated<Resource>>(key); //Snapshot for rollback
+    onMutate: async () => {
+      const old = queryClient.getQueryData<Paginated<Resource>>(key);
       queryClient.setQueryData<Paginated<Resource>>(key, old =>
-        old ? { ...old, data: old.data.filter(i => i.inode_path.path !== resourcePath) } : old
+        old ? { ...old, data: old.data.filter(i => i.inode_path.path !== resource_path) } : old
       );
-      return { prev };
+      return { prev: old };
     },
 
     onError: (_e, _vars, context) => {

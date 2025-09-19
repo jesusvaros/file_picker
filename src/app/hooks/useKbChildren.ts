@@ -23,7 +23,7 @@ export function useKbChildren({
     queryKey: liveKey,
     enabled: Boolean(kbIdCtx) && enabled,
     queryFn: async () => {
-      const sp = new URLSearchParams({ resource_path: resourcePath }); // Use root path since no breadcrumbs
+      const sp = new URLSearchParams({ resource_path: resourcePath }); 
       if (page) sp.set("cursor", page);
       const res = await fetch(`/api/stackai/kb/${kbIdCtx}/children?` + sp);
       if (!res.ok) throw new Error("Failed to load KB files");

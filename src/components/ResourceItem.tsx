@@ -9,6 +9,10 @@ const isDirectory = (inode_type: "directory" | "file") => {
   return inode_type === "directory";
 };
 
+type ItemsProps = ResourceAccordionProps & {
+  onDeleteResource: () => void;
+}
+
 
 export function ResourceItem({
   item,
@@ -19,7 +23,7 @@ export function ResourceItem({
   onDeleteResource,
   onSoftDelete,
   parentResourceId
-}: ResourceAccordionProps) {
+}: ItemsProps) {
   const { resource_id, inode_type, inode_path, modified_at } = item;
   const isIndexed = childrenKb?.data.some((i) => i.inode_path.path === inode_path.path);
 
@@ -49,7 +53,7 @@ export function ResourceItem({
             <Badge
               onClick={(e) => {
                 e.stopPropagation();
-                onDeleteResource(resource_id);
+                onDeleteResource();
               }}
               variant="default"
               className="relative h-6 px-2 py-0 flex items-center justify-center bg-blue-500 transition-colors duration-300 group-hover:bg-red-500"

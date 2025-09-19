@@ -1,6 +1,7 @@
 import { type Paginated, type Resource } from "@/app/api/stackai/utils";
 import { useChildren } from "@/app/hooks/useChildren";
 import { useKbChildren } from "@/app/hooks/useKbChildren";
+import { useKbDeleteResource } from "@/app/hooks/useKbDeleteResource";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,7 +14,6 @@ export interface ResourceAccordionProps {
   isSelected: boolean;
   childrenKb?: Paginated<Resource>;
   onToggleSelected: (id: string) => void;
-  onDeleteResource: (id: string) => void;
   onSoftDelete: ({resourceId, parentResourceId}: {resourceId: string, parentResourceId: string}) => void;
   level?: number;
   selectedResources?: Array<{ resource_id: string; inode_type: string; path: string }>;
@@ -21,6 +21,7 @@ export interface ResourceAccordionProps {
   registerItems?: (items: Resource[]) => void;
   isItemSelected?: (id: string) => boolean;
   parentResourceId?: string;
+  parentResourcePath?: string;
 }
 
 
@@ -31,7 +32,6 @@ export function ResourceAccordion({
   isSelected,
   childrenKb,
   onToggleSelected,
-  onDeleteResource,
   onSoftDelete,
   level = 0,
   selectedResources = [],
@@ -39,12 +39,14 @@ export function ResourceAccordion({
   registerItems,
   isItemSelected,
   parentResourceId,
+  parentResourcePath,
 }: ResourceAccordionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { resource_id, inode_type, inode_path } = item;
 
   // Only fetch children when accordion is opened and it's a directory
   const shouldFetchChildren = isOpen && inode_type === "directory";
+  const { mutate: deleteResource } = useKbDeleteResource({ page: null, resource_path: inode_path.path, parentResourcePath: parentResourcePath ?? "" });
   
   const { 
     data: directoryChildren, 
@@ -90,7 +92,7 @@ export function ResourceAccordion({
         isSelected={isSelected}
         childrenKb={childrenKb}
         onToggleSelected={onToggleSelected}
-        onDeleteResource={onDeleteResource}
+        onDeleteResource={deleteResource}
         onSoftDelete={onSoftDelete}
         parentResourceId={parentResourceId}
       />
@@ -123,7 +125,7 @@ export function ResourceAccordion({
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
-                      onDeleteResource(resource_id);
+                      deleteResource();
                     }}
                     className="relative h-6 px-2 py-0 flex items-center justify-center bg-blue-500 text-white text-xs rounded transition-colors duration-300 group-hover:bg-red-500 cursor-pointer"
                   >
@@ -174,7 +176,6 @@ export function ResourceAccordion({
                     isSelected={isItemSelected ? isItemSelected(childItem.resource_id) : selectedResources.some(selected => selected.resource_id === childItem.resource_id)}
                     childrenKb={directoryChildrenKb}
                     onToggleSelected={onToggleSelected}
-                    onDeleteResource={onDeleteResource}
                     onSoftDelete={onSoftDelete}
                     level={level + 1}
                     selectedResources={selectedResources}
@@ -182,6 +183,7 @@ export function ResourceAccordion({
                     registerItems={registerItems}
                     isItemSelected={isItemSelected}
                     parentResourceId={item.resource_id}
+                    parentResourcePath={item.inode_path.path}
                   />
                 ))}
               </div>
