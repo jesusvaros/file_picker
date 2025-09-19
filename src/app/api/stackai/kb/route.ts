@@ -17,6 +17,5 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify(body),
     headers: { "Content-Type": "application/json" },
   });
-  console.log(data);
   return NextResponse.json(data, { status: data.status });
 }

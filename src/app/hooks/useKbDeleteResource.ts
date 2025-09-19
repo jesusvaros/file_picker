@@ -47,8 +47,6 @@ export function useKbDeleteResource({
       kbChildrenKeys.forEach(key => {
         queryClient.refetchQueries({ queryKey: key });
       });
-    
-      console.log("refetched", kbChildrenKeys )
       
       return resource_path;
     },

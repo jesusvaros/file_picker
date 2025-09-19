@@ -27,8 +27,6 @@ export function ResourceItem({
   const { resource_id, inode_type, inode_path } = item;
   const isIndexed = childrenKb?.data.some((i) => i.inode_path.path === inode_path.path);
 
-  console.log(item)
-
   return (
     <li
       key={resource_id}
