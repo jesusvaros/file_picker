@@ -8,12 +8,13 @@ export function useChildren(params: {
   connectionId?: string;
   currentResourceId?: string;
   page: string | null;
+  enabled?: boolean;
 }) {
-  const { connectionId, currentResourceId, page } = params;
+  const { connectionId, currentResourceId, page, enabled = true } = params;
   const key = [queryKeyBase_children, connectionId, currentResourceId, page];
 
   return useQuery<Paginated<Resource>>({
-    enabled: Boolean(connectionId),
+    enabled: Boolean(connectionId) && enabled,
     queryKey: key,
     queryFn: async () => {
       const searchParams = new URLSearchParams();

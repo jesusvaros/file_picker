@@ -6,9 +6,11 @@ import type { Paginated, Resource } from "../api/stackai/utils";
 export function useKbChildren({
   currentResourcePath = "/",
   page,
+  enabled = true,
 }: {
   currentResourcePath?: string;
   page?: string | null;
+  enabled?: boolean;
 }) {
   const { kbId: kbIdCtx } = useAppContext();
   const qc = useQueryClient();
@@ -19,7 +21,7 @@ export function useKbChildren({
   // live KB (fetches when kbId exists)
   const live = useQuery<Paginated<Resource>, Error, Paginated<Resource>>({
     queryKey: liveKey,
-    enabled: Boolean(kbIdCtx),
+    enabled: Boolean(kbIdCtx) && enabled,
     queryFn: async () => {
       const sp = new URLSearchParams({ resource_path: currentResourcePath });
       if (page) sp.set("cursor", page);

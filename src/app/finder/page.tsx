@@ -85,10 +85,6 @@ export default function Page() {
             page={page}
             connectionId={connectionId}
             orgId={orgId}
-            onOpenFolder={(id, label) => {
-              setBreadcrumbs((s) => [...s, { id, label }]);
-              setPage(null);
-            }}
           />
           <Pager
             page={page}

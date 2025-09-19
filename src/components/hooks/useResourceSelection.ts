@@ -33,22 +33,36 @@ export function useResourceSelection({ items, childrenKb }: UseResourceSelection
     setSelectedResources(nextSelected);
   }, [childrenKb?.data, items]);
 
-  const toggleSelected = (id: string) => {
+  const toggleSelected = (id: string, allItems?: Resource[]) => {
     setSelectedResources((prev) => {
       const exists = prev.some((x) => x.resource_id === id);
-      if (exists) return prev.filter((x) => x.resource_id !== id);
-
-      const item = items.find((it) => it.resource_id === id);
+      
+      // Find the item in the provided items array or fallback to main items
+      const searchItems = allItems || items;
+      const item = searchItems.find((it) => it.resource_id === id);
       if (!item) return prev; // safety: if item not found, don't add incomplete entry
 
-      return [
-        ...prev,
-        {
+      if (exists) {
+        // Remove the item and any children if it's a directory
+        if (item.inode_type === "directory") {
+          // Remove this directory and any items that are children of this directory
+          return prev.filter((x) => x.resource_id !== id && !x.path.startsWith(item.inode_path.path + "/"));
+        } else {
+          // Just remove the file
+          return prev.filter((x) => x.resource_id !== id);
+        }
+      } else {
+        // Add the item
+        const newItem = {
           resource_id: id,
           inode_type: item.inode_type,
           path: item.inode_path.path,
-        },
-      ];
+        };
+
+        // If it's a directory, the backend will automatically select all its children (cascade)
+        // So we only need to add the directory itself - the backend handles the rest
+        return [...prev, newItem];
+      }
     });
   };
 

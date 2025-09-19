@@ -13,6 +13,7 @@ interface ResourceItemProps {
   onOpenFolder: (id: string, path: string) => void;
   onDeleteResource: (id: string) => void;
   onSoftDelete: (id: string) => void;
+  mode?: "navigation" | "accordion"; // navigation shows Open button, accordion doesn't
 }
 
 const isDirectory = (inode_type: "directory" | "file") => {
@@ -28,6 +29,7 @@ export function ResourceItem({
   onOpenFolder,
   onDeleteResource,
   onSoftDelete,
+  mode = "navigation",
 }: ResourceItemProps) {
   const { resource_id, inode_type, inode_path, modified_at } = item;
   const isIndexed = childrenKb?.data.some((i) => i.inode_path.path === inode_path.path);
@@ -78,7 +80,7 @@ export function ResourceItem({
         )}
       </div>
       <div className="flex items-center gap-2">
-        {isDirectory(inode_type) ? (
+        {isDirectory(inode_type) && mode === "navigation" ? (
           <Button
             variant="link"
             size="sm"
@@ -86,6 +88,8 @@ export function ResourceItem({
           >
             Open
           </Button>
+        ) : isDirectory(inode_type) && mode === "accordion" ? (
+          <span className="text-xs opacity-60">Directory</span>
         ) : (
           <div className="flex items-center gap-2">
             <Button

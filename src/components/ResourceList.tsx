@@ -6,16 +6,15 @@ import { useCreateKbWithResources } from "@/app/hooks/useCreateKbWithResources";
 import { useKbChildren } from "@/app/hooks/useKbChildren";
 import { useKbDeleteResource } from "@/app/hooks/useKbDeleteResource";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ResourceItem } from "./ResourceItem";
+import { ResourceAccordion } from "./ResourceAccordion";
 import { ResourceListHeader } from "./ResourceListHeader";
-import { useResourceSelection } from "./hooks/useResourceSelection";
+import { useNestedResourceSelection } from "./hooks/useNestedResourceSelection";
 
 export function ResourceList({
   items,
   isPending,
   error,
   page,
-  onOpenFolder,
   connectionId,
   orgId,
   breadcrumbs,
@@ -24,7 +23,6 @@ export function ResourceList({
   isPending: boolean;
   error: unknown;
   page: string|null;
-  onOpenFolder: (id: string, label: string) => void;
   connectionId: string;
   orgId: string;
   breadcrumbs: { id: string; label: string }[];
@@ -43,23 +41,26 @@ export function ResourceList({
     page,
   });
 
+
   // Selection logic
   const {
     selectedResources,
     isSelectionMode,
-    selectedItems,
-    unselectedItems,
     toggleSelected,
     handleStartIndexing,
     handleCancelSelection,
     handleIndexComplete,
-  } = useResourceSelection({ items, childrenKb });
+    registerItems,
+    isItemSelected,
+    getResourcesForBackend,
+  } = useNestedResourceSelection({ items, childrenKb });
 
   const onIndexClick = () => {
-    if (!selectedResources.length) return;
+    const resourcesToSend = getResourcesForBackend();
+    if (!resourcesToSend.length) return;
     createKbwithResources({
       connectionId,
-      selectionResources: selectedResources,
+      selectionResources: resourcesToSend, // Send only parent directories, not children
       orgId,
     });
     handleIndexComplete();
@@ -94,7 +95,7 @@ export function ResourceList({
       <ResourceListHeader
         isSelectionMode={isSelectionMode}
         itemsCount={items.length}
-        selectedCount={selectedResources.length}
+        selectedCount={selectedResources.length} // Show total selected (including children for UI feedback)
         indexError={indexError}
         isCreatingKb={isCreatingKb}
         onStartIndexing={handleStartIndexing}
@@ -103,45 +104,21 @@ export function ResourceList({
       />
       
       <ul className="divide-y">
-        {/* Show selected items first when in selection mode */}
-        {isSelectionMode && selectedItems.length > 0 && (
-          <>
-            <li className="p-2 bg-blue-50 text-sm font-medium text-blue-700">
-              Selected Items ({selectedItems.length})
-            </li>
-            {selectedItems.map(item => (
-              <ResourceItem
-                key={`selected-${item.resource_id}`}
-                item={item}
-                showCheckbox={true}
-                isSelected={true}
-                childrenKb={childrenKb}
-                onToggleSelected={toggleSelected}
-                onOpenFolder={onOpenFolder}
-                onDeleteResource={deleteResource}
-                onSoftDelete={softDelete}
-              />
-            ))}
-            {unselectedItems.length > 0 && (
-              <li className="p-2 bg-gray-50 text-sm font-medium text-gray-700">
-                Other Items
-              </li>
-            )}
-          </>
-        )}
-        
-        {/* Show all items or remaining unselected items */}
-        {(isSelectionMode ? unselectedItems : items).map(item => (
-          <ResourceItem
+        {/* Show all items with proper selection state */}
+        {items.map(item => (
+          <ResourceAccordion
             key={item.resource_id}
             item={item}
             showCheckbox={isSelectionMode}
-            isSelected={selectedResources.some(selected => selected.resource_id === item.resource_id)}
+            isSelected={isItemSelected(item.resource_id)}
             childrenKb={childrenKb}
             onToggleSelected={toggleSelected}
-            onOpenFolder={onOpenFolder}
             onDeleteResource={deleteResource}
             onSoftDelete={softDelete}
+            selectedResources={selectedResources}
+            connectionId={connectionId}
+            registerItems={registerItems}
+            isItemSelected={isItemSelected}
           />
         ))}
         
