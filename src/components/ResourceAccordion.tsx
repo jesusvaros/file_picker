@@ -1,5 +1,6 @@
 import { type Paginated, type Resource } from "@/app/api/stackai/utils";
 import { useChildren } from "@/app/hooks/useChildren";
+import { useKbChildren } from "@/app/hooks/useKbChildren";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,6 +56,8 @@ export function ResourceAccordion({
     page: null,
     enabled: shouldFetchChildren, // Only fetch when we actually need it
   });
+
+  const { data: directoryChildrenKb } = useKbChildren({ page: null, resourcePath: inode_path.path, enabled: shouldFetchChildren });
 
   // Register items when they load
   useEffect(() => {
@@ -169,7 +172,7 @@ export function ResourceAccordion({
                     item={childItem}
                     showCheckbox={showCheckbox}
                     isSelected={isItemSelected ? isItemSelected(childItem.resource_id) : selectedResources.some(selected => selected.resource_id === childItem.resource_id)}
-                    childrenKb={childrenKb}
+                    childrenKb={directoryChildrenKb}
                     onToggleSelected={onToggleSelected}
                     onDeleteResource={onDeleteResource}
                     onSoftDelete={onSoftDelete}

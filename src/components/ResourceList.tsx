@@ -28,7 +28,7 @@ export function ResourceList({
 
   const { mutate: deleteResource } = useKbDeleteResource({ page });
   const { mutate: createKbwithResources, error: indexError, isPending: isCreatingKb } = useCreateKbWithResources();
-  const { data: childrenKb } = useKbChildren({ page });
+  const { data: childrenKb } = useKbChildren({ page, resourcePath: '/' });
 
   //ok
   const { mutate: softDelete } = useConnectionSoftDelete({
