@@ -73,6 +73,7 @@ export function useConnectionId() {
   const connectionId = storedConnectionId ?? data?.[0]?.connection_id ?? null;
   const orgId = storedOrgId ?? data?.[0]?.org_id ?? null;
   return {
+    data,
     orgId,
     connectionId,
     isPending: !storedConnectionId && isPending,

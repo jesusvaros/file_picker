@@ -1,6 +1,12 @@
 import { stackFetch } from '@/app/api/stackai/utils';
 import { NextRequest, NextResponse } from "next/server";
 
+export type kbPostResourceType = {
+  resource_path: string;                  // ej: "My Drive/Papers" o "My Drive/Folder/Doc.pdf"
+  resource_type: "file" | "directory";    // viene de inode_type del children
+  recursive?: boolean;                   // solo útil si es directory
+};
+
 
 type ContextProps = { params: Promise<{ kbId: string }> };
 
@@ -20,29 +26,34 @@ export async function DELETE(
     { method: "DELETE" }
   );
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ status: 'removed' });
 }
 
-export async function POST(req: NextRequest, context: ContextProps) {
-  const { kbId } = await context.params;
 
-  // Expect multipart/form-data for KB file creation (per notebook)
+// only for adding files status we dont need this for the demo
+// 400, body: '{"detail":"A file binary is required when creating a file resource"}'
+
+export async function POST(req: NextRequest, ctx: { params: Promise<{ kbId: string }> }) {
+  const { kbId } = await ctx.params;
+
   const form = await req.formData();
 
-  const fd = new FormData();
-  fd.append("resource_path", String(form.get("resource_path") || ""));
-  fd.append("resource_type", String(form.get("resource_type") || "file"));
-  const recursive = form.get("recursive");
-  if (recursive != null) fd.append("recursive", String(recursive));
 
-  const file = form.get("file");
-  
-  if (file) fd.append("file", file as File, (file as File).name || "file");
+  const resourcePath = form.get("resource_path");
+  const resourceType = form.get("resource_type");
 
-  const res: Response = await stackFetch(`/knowledge_bases/${kbId}/resources`, {
+  if (!resourcePath || !resourceType) {
+    return NextResponse.json(
+      { error: "resource_path and resource_type are required" },
+      { status: 422 }
+    );
+  }
+
+
+  await stackFetch(`/knowledge_bases/${kbId}/resources`, {
     method: "POST",
-    body: fd, // let fetch set boundary; no Content-Type header
+    body:form
   });
 
-  return NextResponse.json(null, { status: res.status });
+  return NextResponse.json({  status:'added'});
 }

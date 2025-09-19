@@ -6,10 +6,11 @@ import { Pager } from "@/components/Pager";
 import { ResourceList } from "@/components/ResourceList";
 import { useEffect, useMemo, useState } from "react";
 import { useChildren, useConnectionId } from "../hooks/useChildren";
+import { useKbChildren } from "../hooks/useKbChildren";
 import { useKbId } from "../hooks/useKbId";
 
 export default function Page() {
-  const { connectionId, orgId, isPending: loadingConn, error: connError } = useConnectionId();
+  const { connectionId, orgId, isPending: loadingConn, error: connError, data: connections } = useConnectionId();
   const { kbId } = useKbId(connectionId);
 
   const [breadcrumbs, setBreadcrumbs] = useState<
@@ -17,6 +18,7 @@ export default function Page() {
   >([]);
 
   const currentResourceId = breadcrumbs[breadcrumbs.length - 1]?.id;
+  const currentResourcePath = breadcrumbs[breadcrumbs.length - 1]?.label;
 
   const [page, setPage] = useState<string | null>(null);
 
@@ -26,6 +28,10 @@ export default function Page() {
     page,
     knowledgeBaseId: kbId,
   });
+
+  const { data: childrenKb, isFetching: isFetchingKb } = useKbChildren({kbId, currentResourcePath: currentResourcePath , page});
+
+  console.log(childrenKb,isFetchingKb)
 
   const items = data?.data ?? [];
 

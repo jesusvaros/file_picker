@@ -4,8 +4,10 @@ import { type Resource } from "@/app/api/stackai/utils";
 import { useIndexExistingResources } from "@/app/hooks/useIndexExistingResources";
 import { useKnowledgeBaseDeleteResource } from "@/app/hooks/useKnowledgeBaseDeleteResource";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
+import { useState } from "react";
 
 export function ResourceList({
   items,
@@ -28,13 +30,29 @@ export function ResourceList({
   connectionId: string;
   orgId: string;
 }) {
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const { mutate: deleteResource } =
     useKnowledgeBaseDeleteResource({ knowledgeBaseId: kbId, resourceId, page });
 
-  const { mutate: addResource } = useIndexExistingResources();
+  const { mutate:createKbwithResources, isPending: isIndexPending, error: indexError } = useIndexExistingResources();
+ 
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const onIndexClick = () => {
+    if (!selectedIds.length) return;
+    createKbwithResources({
+      connectionId,
+      resourceIds: selectedIds, // array de resource_id del picker
+      orgId,
+    });
+  };
       
-  if (isPending)
+  if (isPending || isIndexPending)
     return (
       <div className="rounded border ">
         <ul className="divide-y">
@@ -68,6 +86,26 @@ export function ResourceList({
 
   return (
     <div className="rounded border">
+      <div className="flex items-center justify-between p-3 border-b">
+        <div className="text-sm opacity-70">
+          Selected: {selectedIds.length}
+        </div>
+        <div className="flex items-center gap-2">
+          {indexError && (
+            <span className="text-xs text-red-600">
+              {(indexError as Error)?.message}
+            </span>
+          )}
+          <Button
+            variant="default"
+            size="sm"
+            disabled={!selectedIds.length}
+            onClick={onIndexClick}
+          >
+            Index selected ({selectedIds.length})
+          </Button>
+        </div>
+      </div>
       <ul className="divide-y">
         {items.map(({ resource_id, inode_type, inode_path, modified_at}) => (
           <li
@@ -76,6 +114,12 @@ export function ResourceList({
             onClick={isDirectory(inode_type) ? () => onOpenFolder(resource_id, inode_path.path) : undefined}
           >
             <div className="flex items-center gap-2">
+              <Checkbox
+                className="cursor-pointer"
+                checked={selectedIds.includes(resource_id)}
+                onCheckedChange={() => toggleSelected(resource_id)}
+                onClick={(e) => e.stopPropagation()}
+              />
               <span>{isDirectory(inode_type) ? "📁" : "📄"}</span>
               <span className="font-medium">{inode_path.path}</span>
               {modified_at && (
@@ -84,7 +128,7 @@ export function ResourceList({
                 </span>
               )}
             </div>
-<div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
             {isDirectory(inode_type) ? (
               <Button
                 variant="link"
@@ -111,19 +155,8 @@ export function ResourceList({
               <span className="text-xs opacity-60">File</span>
               </div>
             )}
-            <Button
-                variant="link"
-                size="sm"
-                className="px-0 text-blue-600 cursor-pointer"
-                disabled={!kbId}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addResource({connectionId: connectionId, resourceIds: [inode_path.path], indexingParams: { ocr: false, unstructured: true }, orgId: orgId });
-                }}
-              >
-                Add
-              </Button>
-              </div>
+            {/* Per-item Add removed in favor of multi-select toolbar */}
+            </div>
           </li>
         ))}
         {!items.length && (

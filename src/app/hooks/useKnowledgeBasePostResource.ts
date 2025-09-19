@@ -1,82 +1,76 @@
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Paginated } from "../api/stackai/utils";
-
-export type KBResource = {
-  resource_id: string;
-  inode_type: "file" | "directory";
-  inode_path: { path: string };
-  status?: "pending" | "indexed" | "failed";
-};
+import { kbPostResourceType } from "../api/stackai/kb/[kbId]/resources/route";
+import { Resource } from "../api/stackai/utils";
 
 export function useKnowledgeBasePostResource({
   knowledgeBaseId,
-  resourceId,
-  page,
+  listingKey, // la misma queryKey que uses para listar KB children
 }: {
   knowledgeBaseId: string | null;
-  resourceId: string;
-  page: string | null;
+  listingKey: (string | null | undefined)[];
 }) {
   const qc = useQueryClient();
-  const key = ["knowledge-base-children", knowledgeBaseId, resourceId, page];
 
   return useMutation({
-    mutationFn: async ({
-      resourcePath,
-      recursive = false,
-      resourceType = "file",
-      file, // optional
-    }: {
-      resourcePath: string;
-      recursive?: boolean;
-      resourceType?: "file" | "directory";
-      file?: File | null;
-    }) => {
+    mutationFn: async ({ resource_path, resource_type }:kbPostResourceType ) => {
       if (!knowledgeBaseId) throw new Error("Missing knowledge base id");
 
-      const formData = new FormData();
-      formData.append("resource_path", resourcePath);
-      formData.append("resource_type", resourceType);
+      const fd = new FormData();
+      fd.append("resource_path", resource_path);
+      fd.append("resource_type", resource_type);
+      fd.append("recursive", String(Boolean(resource_type === "directory")));
 
-      if (recursive != null) formData.append("recursive", String(recursive));
-      if (file) formData.append("file", file, file.name);
+
 
       const res = await fetch(`/api/stackai/kb/${knowledgeBaseId}/resources`, {
         method: "POST",
-        body: formData, 
+        body: fd,
       });
-      if (!res.ok) throw new Error("Index failed");
-      return (await res.json()) as KBResource;
+
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`Index failed (${res.status}) ${txt}`);
+      }
+
+      // el backend puede devolver vacío; devolvemos null o el json
+      try {
+        return (await res.json()) as Resource | null;
+      } catch {
+        return null;
+      }
     },
 
-    // Optimistic: add "pending" item
-    onMutate: async ({ resourcePath, resourceType = "file" }) => {
-      await qc.cancelQueries({ queryKey: key });
-      const prev = qc.getQueryData<Paginated<KBResource>>(key);
+    // Optimistic: añadimos un item "pending"
+    onMutate: async ({ resource_path, resource_type }) => {
+      await qc.cancelQueries({ queryKey: listingKey });
+      const prev = qc.getQueryData<{ data: Resource[] }>(listingKey);
 
-      qc.setQueryData<Paginated<KBResource>>(key, (old) =>
-        old
-          ? {
-              ...old,
-              data: [
-                ...old.data,
-                {
-                  resource_id: "temp-" + Date.now(),
-                  inode_type: resourceType,
-                  inode_path: { path: resourcePath },
-                  status: "pending",
-                },
-              ],
-            }
-          : old
-      );
+      qc.setQueryData(listingKey, (old: { data: Resource[] }) => {
+        if (!old?.data) return old;
+        return {
+          ...old,
+          data: [
+            ...old.data,
+            {
+              resource_id: `temp-${Date.now()}`,
+              inode_type: resource_type,
+              inode_path: { path: resource_path },
+              status: "pending",
+            },
+          ],
+        };
+      });
 
       return { prev };
     },
 
     onError: (_err, _vars, ctx) => {
-      if (ctx?.prev) qc.setQueryData(key, ctx.prev);
+      if (ctx?.prev) qc.setQueryData(listingKey, ctx.prev);
+    },
+
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: listingKey });
     },
   });
 }
