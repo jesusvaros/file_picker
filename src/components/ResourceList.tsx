@@ -42,9 +42,18 @@ export function ResourceList({
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
+  // Sync selectedIds with childrenKb 
   useEffect(() => {
-    setSelectedIds(childrenKb?.data.map((i) => i.resource_id) ?? []);
-  }, [childrenKb]);
+    if (!childrenKb?.data || !items?.length) {
+      setSelectedIds([]);
+      return;
+    }
+    const indexedPaths = new Set(childrenKb.data.map((i) => i.inode_path.path));
+    const nextSelected = items
+      .filter((it) => indexedPaths.has(it.inode_path.path))
+      .map((it) => it.resource_id);
+    setSelectedIds(nextSelected);
+  }, [childrenKb?.data, items]);
 
   const { mutate: softDelete } = useConnectionSoftDelete({
     connectionId,
@@ -90,8 +99,6 @@ export function ResourceList({
         Error: {String((error as Error)?.message ?? error)}
       </div>
     );
-
-    console.log(childrenKb?.data,items)
   
   
   const isDirectory = (inode_type: "directory" | "file") => {
@@ -137,9 +144,27 @@ export function ResourceList({
                 onClick={(e) => e.stopPropagation()}
               />
               <span>{isDirectory(inode_type) ? "📁" : "📄"}</span>
-              {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) ? 
-              <Badge variant="default" className="bg-blue-500">Indexed</Badge> : ""}
+
               <span className="font-medium">{inode_path.path}</span>
+              {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) && (
+                <div className="relative inline-flex h-6 items-center overflow-hidden group">
+                  <Badge
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteResource(resource_id);
+                    }}
+                    variant="default"
+                    className="relative h-6 px-2 py-0 flex items-center justify-center bg-blue-500 transition-colors duration-300 group-hover:bg-red-500"
+                  >
+                    <span className="block transition-transform duration-300 group-hover:-translate-y-full">
+                      Indexed
+                    </span>
+                    <span className="pb-0.5 absolute top-full block text-center transition-transform duration-300 group-hover:-translate-y-full">
+                      De-index
+                    </span>
+                  </Badge>
+                </div>
+              )}
               {modified_at && (
                 <span className="text-xs opacity-60">
                   {format(parseISO(modified_at), "PP")}
@@ -159,15 +184,15 @@ export function ResourceList({
             ) : (
               <div className="flex items-center gap-2">
               <Button
-                variant="link"
+                variant="outline"
                 size="sm"
-                className="px-0 text-red-600 cursor-pointer"
+                className="p-2cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                   softDelete(resource_id);
                 }}
               >
-                Delete
+                🗑️
               </Button>
               <span className="text-xs opacity-60">File</span>
               </div>
