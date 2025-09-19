@@ -1,8 +1,9 @@
 "use client";
 
 import { type Resource } from "@/app/api/stackai/utils";
+import { useConnectionSoftDelete } from "@/app/hooks/useChildrenSoftDelete";
 import { useCreateKbWithResources } from "@/app/hooks/useCreateKbWithResources";
-import { useKbDeleteResource } from "@/app/hooks/useKBDeleteResource";
+import { useKbDeleteResource } from "@/app/hooks/useKbDeleteResource";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,6 +34,12 @@ export function ResourceList({
 
   const { mutate: deleteResource } = useKbDeleteResource({ resourceId, page });
   const { mutate:createKbwithResources, isPending: isIndexPending, error: indexError } = useCreateKbWithResources();
+
+  const { mutate: softDelete } = useConnectionSoftDelete({
+    connectionId,
+    currentResourceId: resourceId,
+    page,
+  });
  
   const toggleSelected = (id: string) => {
     setSelectedIds((prev) =>
@@ -44,7 +51,7 @@ export function ResourceList({
     if (!selectedIds.length) return;
     createKbwithResources({
       connectionId,
-      resourceIds: selectedIds, // array de resource_id del picker
+      resourceIds: selectedIds,
       orgId,
     });
   };
@@ -143,7 +150,7 @@ export function ResourceList({
                 className="px-0 text-red-600 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  deleteResource(inode_path.path);
+                  softDelete(resource_id);
                 }}
               >
                 Delete

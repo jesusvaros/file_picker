@@ -5,12 +5,12 @@ import { Header } from "@/components/Header";
 import { Pager } from "@/components/Pager";
 import { ResourceList } from "@/components/ResourceList";
 import { useEffect, useMemo, useState } from "react";
-import { useChildren, useConnectionId } from "../hooks/useChildren";
+import { useChildren } from "../hooks/useChildren";
+import { useConnectionId } from "../hooks/useConnections";
 import { useKbChildren } from "../hooks/useKbChildren";
 
 export default function Page() {
   const { connectionId, orgId, isPending: loadingConn, error: connError, data: connections } = useConnectionId();
-
 
   const [breadcrumbs, setBreadcrumbs] = useState<
     { id: string; label: string }[]
@@ -23,7 +23,7 @@ export default function Page() {
 
   const { data, isPending, error, isFetching } = useChildren({
     connectionId: connectionId ?? undefined,
-    resourceId: currentResourceId ?? "root",
+    currentResourceId: currentResourceId,
     page,
   });
 
@@ -87,7 +87,7 @@ export default function Page() {
             items={items}
             isPending={isPending || isFetching}
             error={error}
-            resourceId={currentResourceId ?? "root"}
+            resourceId={currentResourceId}
             page={page}
             connectionId={connectionId}
             orgId={orgId}

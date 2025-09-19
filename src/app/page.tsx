@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useConnectionId } from "./hooks/useChildren";
+import { useConnectionId } from "./hooks/useConnections";
 
 export default function Home() {
   const { connectionId, isPending, error } = useConnectionId();

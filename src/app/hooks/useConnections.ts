@@ -37,3 +37,21 @@ export function useConnections(options?: { enabled?: boolean }) {
     enabled,
   });
 }
+
+
+export function useConnectionId() {
+  const storedConnectionId =
+    typeof window !== "undefined" ? localStorage.getItem("connectionId") : null;
+    const storedOrgId =
+    typeof window !== "undefined" ? localStorage.getItem("orgId") : null;
+  const { data, isPending, error } = useConnections({ enabled: !storedConnectionId });
+  const connectionId = storedConnectionId ?? data?.[0]?.connection_id ?? null;
+  const orgId = storedOrgId ?? data?.[0]?.org_id ?? null;
+  return {
+    data,
+    orgId,
+    connectionId,
+    isPending: !storedConnectionId && isPending,
+    error,
+  };
+}
