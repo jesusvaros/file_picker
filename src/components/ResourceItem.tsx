@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format, parseISO } from "date-fns";
+import { DeleteAction } from "./DeleteAction";
 import { IndexedBadge } from "./IndexedBadge";
 import { ResourceAccordionProps } from "./ResourceAccordion";
 
@@ -59,6 +60,15 @@ export function ResourceItem({
         )}
       </div>
       <div className="flex items-center gap-2">
+        {/* Delete action for both files and folders */}
+        <DeleteAction
+          onDelete={() => {
+            console.log('ResourceItem delete called', { resource_id, parentResourceId, inode_type });
+            onSoftDelete({resourceId: resource_id, parentResourceId});
+          }}
+          isDirectory={isDirectory(inode_type)}
+        />
+        
         {isDirectory(inode_type) ? (
           <Button
             variant="link"
@@ -68,20 +78,7 @@ export function ResourceItem({
             Open
           </Button>
         ) : (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="p-2 cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation();
-                onSoftDelete({resourceId: resource_id, parentResourceId: parentResourceId ?? ''});
-              }}
-            >
-              🗑️
-            </Button>
-            <span className="text-xs opacity-60">File</span>
-          </div>
+          <span className="text-xs opacity-60">File</span>
         )}
       </div>
     </li>

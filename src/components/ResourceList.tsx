@@ -24,15 +24,13 @@ export function ResourceList({
   connectionId: string;
   orgId: string;
 }) {
-  //ok
+
   const { data: childrenKb } = useKbChildren({ page, resourcePath: '/' });
   const { mutate: softDelete } = useConnectionSoftDelete({
     connectionId,
     page,
   });
   const { mutate: createKbwithResources, error: indexError, isPending: isCreatingKb } = useCreateKbWithResources();
-  
-
 
   // Selection logic
   const {
@@ -119,7 +117,6 @@ export function ResourceList({
             connectionId={connectionId}
             registerItems={registerItems}
             isItemSelected={isItemSelected}
-            parentResourceId={'/'}
             parentResourcePath={'/'}
           />
         ))}

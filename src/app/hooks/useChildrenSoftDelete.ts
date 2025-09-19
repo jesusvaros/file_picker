@@ -37,6 +37,7 @@ export function useConnectionSoftDelete({
     },
 
     onMutate: async ({ resourceId, parentResourceId }: { resourceId: string; parentResourceId?: string }) => {
+      console.log( 'useConnectionSoftDelete onMutate', { resourceId, parentResourceId ,page, connectionId} );
       const key = [queryKeyBase_children, connectionId, parentResourceId, page];
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueryData<Paginated<Resource>>(key);
