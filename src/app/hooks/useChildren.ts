@@ -8,6 +8,7 @@ export type StackConnection = {
   name: string;
   created_at: string;
   updated_at: string;
+  org_id: string;
 };
 
 
@@ -22,10 +23,13 @@ export function useConnections(options?: { enabled?: boolean }) {
       const response = await fetch("/api/stackai/connections");
       if (!response.ok) throw new Error("Error fetching connections");
       const data = (await response.json()) as StackConnection[];
-      const id = data?.[0]?.connection_id;
+      const first = data?.[0];
+      const id = first?.connection_id;
+      const orgId = first?.org_id;
       if (id) {
         try {
           localStorage.setItem("connectionId", id);
+          if (orgId) localStorage.setItem("orgId", orgId);
         } catch {}
       }
       return data;
@@ -61,13 +65,17 @@ export function useChildren(params: {
 }
 
 export function useConnectionId() {
-  const stored =
+  const storedConnectionId =
     typeof window !== "undefined" ? localStorage.getItem("connectionId") : null;
-  const { data, isPending, error } = useConnections({ enabled: !stored });
-  const connectionId = stored ?? data?.[0]?.connection_id ?? null;
+    const storedOrgId =
+    typeof window !== "undefined" ? localStorage.getItem("orgId") : null;
+  const { data, isPending, error } = useConnections({ enabled: !storedConnectionId });
+  const connectionId = storedConnectionId ?? data?.[0]?.connection_id ?? null;
+  const orgId = storedOrgId ?? data?.[0]?.org_id ?? null;
   return {
+    orgId,
     connectionId,
-    isPending: !stored && isPending,
+    isPending: !storedConnectionId && isPending,
     error,
   };
 }

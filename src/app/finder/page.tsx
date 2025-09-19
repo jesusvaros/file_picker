@@ -9,7 +9,7 @@ import { useChildren, useConnectionId } from "../hooks/useChildren";
 import { useKbId } from "../hooks/useKbId";
 
 export default function Page() {
-  const { connectionId, isPending: loadingConn, error: connError } = useConnectionId();
+  const { connectionId, orgId, isPending: loadingConn, error: connError } = useConnectionId();
   const { kbId } = useKbId(connectionId);
 
   const [breadcrumbs, setBreadcrumbs] = useState<
@@ -74,7 +74,7 @@ export default function Page() {
         <p className="text-red-600">Error connections: {String(connError)}</p>
       )}
 
-      {connectionId && (
+      {connectionId && orgId && (
         <>
           <BreadcrumbNav
             crumbs={crumbs}
@@ -88,6 +88,8 @@ export default function Page() {
             resourceId={currentResourceId ?? "root"}
             kbId={kbId}
             page={page}
+            connectionId={connectionId}
+            orgId={orgId}
             onOpenFolder={(id, label) => {
               setBreadcrumbs((s) => [...s, { id, label }]);
               setPage(null);

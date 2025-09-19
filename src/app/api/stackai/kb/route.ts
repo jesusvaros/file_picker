@@ -12,10 +12,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const data = await stackFetch("/knowledge_bases", {
+  const data: Response = await stackFetch("/knowledge_bases", {
     method: "POST",
     body: JSON.stringify(body),
     headers: { "Content-Type": "application/json" },
   });
-  return NextResponse.json(data);
+  console.log(data);
+  return NextResponse.json(data, { status: data.status });
 }

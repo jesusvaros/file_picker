@@ -1,6 +1,7 @@
 "use client";
 
 import { type Resource } from "@/app/api/stackai/utils";
+import { useIndexExistingResources } from "@/app/hooks/useIndexExistingResources";
 import { useKnowledgeBaseDeleteResource } from "@/app/hooks/useKnowledgeBaseDeleteResource";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +15,8 @@ export function ResourceList({
   page,
   onOpenFolder,
   kbId,
+  connectionId,
+  orgId,
 }: {
   items: Resource[];
   isPending: boolean;
@@ -22,12 +25,15 @@ export function ResourceList({
   page: string|null;
   onOpenFolder: (id: string, label: string) => void;
   kbId: string | null;
+  connectionId: string;
+  orgId: string;
 }) {
 
   const { mutate: deleteResource } =
     useKnowledgeBaseDeleteResource({ knowledgeBaseId: kbId, resourceId, page });
 
-
+  const { mutate: addResource } = useIndexExistingResources();
+      
   if (isPending)
     return (
       <div className="rounded border ">
@@ -57,8 +63,8 @@ export function ResourceList({
   const isDirectory = (inode_type: "directory" | "file") => {
     return inode_type === "directory";
   };
-  
 
+  //todo animate delete
 
   return (
     <div className="rounded border">
@@ -78,7 +84,7 @@ export function ResourceList({
                 </span>
               )}
             </div>
-
+<div className="flex items-center gap-2">
             {isDirectory(inode_type) ? (
               <Button
                 variant="link"
@@ -102,10 +108,22 @@ export function ResourceList({
               >
                 Delete
               </Button>
-
               <span className="text-xs opacity-60">File</span>
               </div>
             )}
+            <Button
+                variant="link"
+                size="sm"
+                className="px-0 text-blue-600 cursor-pointer"
+                disabled={!kbId}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addResource({connectionId: connectionId, resourceIds: [inode_path.path], indexingParams: { ocr: false, unstructured: true }, orgId: orgId });
+                }}
+              >
+                Add
+              </Button>
+              </div>
           </li>
         ))}
         {!items.length && (
