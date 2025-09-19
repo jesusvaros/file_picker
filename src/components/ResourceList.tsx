@@ -37,22 +37,20 @@ export function ResourceList({
   const { mutate:createKbwithResources, error: indexError,isPending: isCreatingKb } = useCreateKbWithResources();
 
   const currentResourcePath = breadcrumbs[breadcrumbs.length - 1]?.label;
-
   const { data: childrenKb } = useKbChildren({currentResourcePath: currentResourcePath , page});
-
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedResources, setSelectedResources] = useState<{ resource_id: string; inode_type: string; path: string }[]>([]);
 
   // Sync selectedIds with childrenKb 
   useEffect(() => {
     if (!childrenKb?.data || !items?.length) {
-      setSelectedIds([]);
+      setSelectedResources([]);
       return;
     }
-    const indexedPaths = new Set(childrenKb.data.map((i) => i.inode_path.path));
+    const indexedPaths = new Set(childrenKb?.data?.map((i) => i.inode_path.path));
     const nextSelected = items
       .filter((it) => indexedPaths.has(it.inode_path.path))
-      .map((it) => it.resource_id);
-    setSelectedIds(nextSelected);
+      .map((it) => ({ resource_id: it.resource_id, inode_type: it.inode_type, path: it.inode_path.path }));
+    setSelectedResources(nextSelected);
   }, [childrenKb?.data, items]);
 
   const { mutate: softDelete } = useConnectionSoftDelete({
@@ -62,16 +60,29 @@ export function ResourceList({
   });
  
   const toggleSelected = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setSelectedResources((prev) => {
+      const exists = prev.some((x) => x.resource_id === id);
+      if (exists) return prev.filter((x) => x.resource_id !== id);
+
+      const item = items.find((it) => it.resource_id === id);
+      if (!item) return prev; // safety: if item not found, don't add incomplete entry
+
+      return [
+        ...prev,
+        {
+          resource_id: id,
+          inode_type: item.inode_type,
+          path: item.inode_path.path,
+        },
+      ];
+    });
   };
 
   const onIndexClick = () => {
-    if (!selectedIds.length) return;
+    if (!selectedResources.length) return;
     createKbwithResources({
       connectionId,
-      resourceIds: selectedIds,
+      selectionResources: selectedResources,
       orgId,
     });
   };
@@ -111,7 +122,7 @@ export function ResourceList({
     <div className="rounded border">
       <div className="flex items-center justify-between p-3 border-b">
         <div className="text-sm opacity-70">
-          Selected: {selectedIds.length}
+          Selected: {selectedResources.length}
         </div>
         <div className="flex items-center gap-2">
           {indexError && (
@@ -122,10 +133,10 @@ export function ResourceList({
           <Button
             variant="default"
             size="sm"
-            disabled={!selectedIds.length || isCreatingKb}
+            disabled={!selectedResources.length || isCreatingKb}
             onClick={onIndexClick}
           >
-            Index selected ({selectedIds.length})
+            Index selected ({selectedResources.length})
           </Button>
         </div>
       </div>
@@ -139,13 +150,14 @@ export function ResourceList({
             <div className="flex items-center gap-2">
               <Checkbox
                 className="cursor-pointer"
-                checked={selectedIds.includes(resource_id)}
+                checked={selectedResources.some((r) => r.resource_id === resource_id)}
                 onCheckedChange={() => toggleSelected(resource_id)}
                 onClick={(e) => e.stopPropagation()}
               />
               <span>{isDirectory(inode_type) ? "📁" : "📄"}</span>
 
               <span className="font-medium">{inode_path.path}</span>
+              
               {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) && (
                 <div className="relative inline-flex h-6 items-center overflow-hidden group">
                   <Badge
