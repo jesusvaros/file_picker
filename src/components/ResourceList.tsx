@@ -5,12 +5,10 @@ import { useConnectionSoftDelete } from "@/app/hooks/useChildrenSoftDelete";
 import { useCreateKbWithResources } from "@/app/hooks/useCreateKbWithResources";
 import { useKbChildren } from "@/app/hooks/useKbChildren";
 import { useKbDeleteResource } from "@/app/hooks/useKbDeleteResource";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format, parseISO } from "date-fns";
-import { useEffect, useState } from "react";
+import { ResourceItem } from "./ResourceItem";
+import { ResourceListHeader } from "./ResourceListHeader";
+import { useResourceSelection } from "./hooks/useResourceSelection";
 
 export function ResourceList({
   items,
@@ -32,51 +30,30 @@ export function ResourceList({
   breadcrumbs: { id: string; label: string }[];
 }) {
   const currentResourceId = breadcrumbs[breadcrumbs.length - 1]?.id;
-
-  const { mutate: deleteResource } = useKbDeleteResource({ resourceId: currentResourceId, page });
-  const { mutate:createKbwithResources, error: indexError,isPending: isCreatingKb } = useCreateKbWithResources();
-
   const currentResourcePath = breadcrumbs[breadcrumbs.length - 1]?.label;
-  const { data: childrenKb } = useKbChildren({currentResourcePath: currentResourcePath , page});
-  const [selectedResources, setSelectedResources] = useState<{ resource_id: string; inode_type: string; path: string }[]>([]);
 
-  // Sync selectedIds with childrenKb 
-  useEffect(() => {
-    if (!childrenKb?.data || !items?.length) {
-      setSelectedResources([]);
-      return;
-    }
-    const indexedPaths = new Set(childrenKb?.data?.map((i) => i.inode_path.path));
-    const nextSelected = items
-      .filter((it) => indexedPaths.has(it.inode_path.path))
-      .map((it) => ({ resource_id: it.resource_id, inode_type: it.inode_type, path: it.inode_path.path }));
-    setSelectedResources(nextSelected);
-  }, [childrenKb?.data, items]);
+  // Hooks
+  const { mutate: deleteResource } = useKbDeleteResource({ resourceId: currentResourceId, page });
+  const { mutate: createKbwithResources, error: indexError, isPending: isCreatingKb } = useCreateKbWithResources();
+  const { data: childrenKb } = useKbChildren({ currentResourcePath, page });
 
   const { mutate: softDelete } = useConnectionSoftDelete({
     connectionId,
-    currentResourceId: currentResourceId,
+    currentResourceId,
     page,
   });
- 
-  const toggleSelected = (id: string) => {
-    setSelectedResources((prev) => {
-      const exists = prev.some((x) => x.resource_id === id);
-      if (exists) return prev.filter((x) => x.resource_id !== id);
 
-      const item = items.find((it) => it.resource_id === id);
-      if (!item) return prev; // safety: if item not found, don't add incomplete entry
-
-      return [
-        ...prev,
-        {
-          resource_id: id,
-          inode_type: item.inode_type,
-          path: item.inode_path.path,
-        },
-      ];
-    });
-  };
+  // Selection logic
+  const {
+    selectedResources,
+    isSelectionMode,
+    selectedItems,
+    unselectedItems,
+    toggleSelected,
+    handleStartIndexing,
+    handleCancelSelection,
+    handleIndexComplete,
+  } = useResourceSelection({ items, childrenKb });
 
   const onIndexClick = () => {
     if (!selectedResources.length) return;
@@ -85,6 +62,7 @@ export function ResourceList({
       selectionResources: selectedResources,
       orgId,
     });
+    handleIndexComplete();
   };
       
   if (isPending)
@@ -110,110 +88,65 @@ export function ResourceList({
         Error: {String((error as Error)?.message ?? error)}
       </div>
     );
-  
-  
-  const isDirectory = (inode_type: "directory" | "file") => {
-    return inode_type === "directory";
-  };
-
-  //todo animate delete
 
   return (
     <div className="rounded border">
-      <div className="flex items-center justify-between p-3 border-b">
-        <div className="text-sm opacity-70">
-          Selected: {selectedResources.length}
-        </div>
-        <div className="flex items-center gap-2">
-          {indexError && (
-            <span className="text-xs text-red-600">
-              {(indexError as Error)?.message}
-            </span>
-          )}
-          <Button
-            variant="default"
-            size="sm"
-            disabled={!selectedResources.length || isCreatingKb}
-            onClick={onIndexClick}
-          >
-            Index selected ({selectedResources.length})
-          </Button>
-        </div>
-      </div>
+      <ResourceListHeader
+        isSelectionMode={isSelectionMode}
+        itemsCount={items.length}
+        selectedCount={selectedResources.length}
+        indexError={indexError}
+        isCreatingKb={isCreatingKb}
+        onStartIndexing={handleStartIndexing}
+        onCancelSelection={handleCancelSelection}
+        onIndexClick={onIndexClick}
+      />
+      
       <ul className="divide-y">
-        {items.map(({ resource_id, inode_type, inode_path, modified_at}) => (
-          <li
-            key={resource_id}
-            className={`hover:bg-muted/40 ${isDirectory(inode_type) ? "cursor-pointer" : ""} flex items-center justify-between p-3`}
-            onClick={isDirectory(inode_type) ? () => onOpenFolder(resource_id, inode_path.path) : undefined}
-          >
-            <div className="flex items-center gap-2">
-              <Checkbox
-                className="cursor-pointer"
-                checked={selectedResources.some((r) => r.resource_id === resource_id)}
-                onCheckedChange={() => toggleSelected(resource_id)}
-                onClick={(e) => e.stopPropagation()}
+        {/* Show selected items first when in selection mode */}
+        {isSelectionMode && selectedItems.length > 0 && (
+          <>
+            <li className="p-2 bg-blue-50 text-sm font-medium text-blue-700">
+              Selected Items ({selectedItems.length})
+            </li>
+            {selectedItems.map(item => (
+              <ResourceItem
+                key={`selected-${item.resource_id}`}
+                item={item}
+                showCheckbox={true}
+                isSelected={true}
+                childrenKb={childrenKb}
+                onToggleSelected={toggleSelected}
+                onOpenFolder={onOpenFolder}
+                onDeleteResource={deleteResource}
+                onSoftDelete={softDelete}
               />
-              <span>{isDirectory(inode_type) ? "📁" : "📄"}</span>
-
-              <span className="font-medium">{inode_path.path}</span>
-              
-              {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) && (
-                <div className="relative inline-flex h-6 items-center overflow-hidden group">
-                  <Badge
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteResource(resource_id);
-                    }}
-                    variant="default"
-                    className="relative h-6 px-2 py-0 flex items-center justify-center bg-blue-500 transition-colors duration-300 group-hover:bg-red-500"
-                  >
-                    <span className="block transition-transform duration-300 group-hover:-translate-y-full">
-                      Indexed
-                    </span>
-                    <span className="pb-0.5 absolute top-full block text-center transition-transform duration-300 group-hover:-translate-y-full">
-                      De-index
-                    </span>
-                  </Badge>
-                </div>
-              )}
-              {modified_at && (
-                <span className="text-xs opacity-60">
-                  {format(parseISO(modified_at), "PP")}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-            {isDirectory(inode_type) ? (
-              <Button
-                variant="link"
-                size="sm"
-                className="px-0 text-blue-600 cursor-pointer"
-              >
-                Open
-              </Button>
-              
-            ) : (
-              <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="p-2cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  softDelete(resource_id);
-                }}
-              >
-                🗑️
-              </Button>
-              <span className="text-xs opacity-60">File</span>
-              </div>
+            ))}
+            {unselectedItems.length > 0 && (
+              <li className="p-2 bg-gray-50 text-sm font-medium text-gray-700">
+                Other Items
+              </li>
             )}
-            </div>
-          </li>
+          </>
+        )}
+        
+        {/* Show all items or remaining unselected items */}
+        {(isSelectionMode ? unselectedItems : items).map(item => (
+          <ResourceItem
+            key={item.resource_id}
+            item={item}
+            showCheckbox={isSelectionMode}
+            isSelected={selectedResources.some(selected => selected.resource_id === item.resource_id)}
+            childrenKb={childrenKb}
+            onToggleSelected={toggleSelected}
+            onOpenFolder={onOpenFolder}
+            onDeleteResource={deleteResource}
+            onSoftDelete={softDelete}
+          />
         ))}
+        
         {!items.length && (
-          <li className="p-4 opacity-70"> No resources found</li>
+          <li className="p-4 opacity-70">No resources found</li>
         )}
       </ul>
     </div>
