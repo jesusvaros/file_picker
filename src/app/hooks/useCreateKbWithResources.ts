@@ -1,8 +1,7 @@
 "use client";
 import { useAppContext } from "@/app/providers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { startTransition } from "react";
-import type { Paginated, Resource } from "../api/stackai/utils";
+import type { Paginated } from "../api/stackai/utils";
 
 type IndexingParams = { ocr: boolean; unstructured: boolean };
 
@@ -11,18 +10,17 @@ type CreateKbResponse = {
   created_at?: string;
 };
 
-// Variables and helper types for the mutation
 type SelectedResource = {
-  resource_id: string;                 // from connection children
+  resource_id: string;  
   inode_type: string;
-  path: string;                        // i.inode_path.path
+  path: string;    
 };
 
 type CreateKbVars = {
   connectionId: string;
-  selectionResources: SelectedResource[]; // Drive IDs (resource_id) from children endpoint
-  indexingParams?: IndexingParams; // optional
-  orgId: string; // needed for sync
+  selectionResources: SelectedResource[];
+  indexingParams?: IndexingParams;
+  orgId: string;
 };
 
 // Local staging type to allow an extra transient status flag in cache
@@ -35,7 +33,6 @@ export function useCreateKbWithResources() {
   return useMutation<CreateKbResponse, Error, CreateKbVars, { stagingKey: (string | null)[] }>({
     onMutate: ({ selectionResources }: CreateKbVars) => {
       const stagingKey: (string | null)[] = ["kb-children:staging"];
-      console.log(selectionResources)
 
       const pending = selectionResources.map((i) => ({
         resource_id: i.resource_id,
@@ -93,24 +90,8 @@ export function useCreateKbWithResources() {
       return kb;
     },
 
-    // migrate staging -> real key, then flip kbId
-    onSuccess: async (kb, _vars, ctx) => {
-      const realKey = ["kb-children", kb.knowledge_base_id, "/", null] as const;
-
-      const stagingData = ctx?.stagingKey
-        ? (qc.getQueryData(ctx.stagingKey) as Paginated<Resource> | undefined)
-        : undefined;
-
-      if (stagingData) {
-        qc.setQueryData(realKey, stagingData); // show optimistic list immediately
-      }
-
-      // trigger real fetch to replace pending with actual statuses
-      qc.invalidateQueries({ queryKey: realKey, exact: true });
-
-      startTransition(() => setKbId(kb.knowledge_base_id));
-
-      if (ctx?.stagingKey) qc.removeQueries({ queryKey: ctx.stagingKey, exact: true });
+    onSuccess: async (kb) => {
+      setKbId(kb.knowledge_base_id)
     },
 
     onError: (_e, _vars, ctx) => {

@@ -28,13 +28,15 @@ export function ResourceList({
 
   const { mutate: deleteResource } = useKbDeleteResource({ page });
   const { mutate: createKbwithResources, error: indexError, isPending: isCreatingKb } = useCreateKbWithResources();
-  const { data: childrenKb } = useKbChildren({ page, resourcePath: '/' });
+
 
   //ok
+  const { data: childrenKb } = useKbChildren({ page, resourcePath: '/' });
   const { mutate: softDelete } = useConnectionSoftDelete({
     connectionId,
     page,
   });
+  
 
 
   // Selection logic
@@ -55,7 +57,7 @@ export function ResourceList({
     if (!resourcesToSend.length) return;
     createKbwithResources({
       connectionId,
-      selectionResources: resourcesToSend, // Send only parent directories, not children
+      selectionResources: resourcesToSend,
       orgId,
     });
     handleIndexComplete();
