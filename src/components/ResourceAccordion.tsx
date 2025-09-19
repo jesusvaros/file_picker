@@ -6,6 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
+import { IndexedBadge } from "./IndexedBadge";
 import { ResourceItem } from "./ResourceItem";
 
 export interface ResourceAccordionProps {
@@ -83,19 +84,21 @@ export function ResourceAccordion({
     }
   }, [directoryChildren?.data, isSelected, inode_type, isItemSelected, onToggleSelected]);
 
-  // For files, just render the ResourceItem
+  // For files, just render the ResourceItem with same indentation as directories
   if (inode_type === "file") {
     return (
-      <ResourceItem
-        item={item}
-        showCheckbox={showCheckbox}
-        isSelected={isSelected}
-        childrenKb={childrenKb}
-        onToggleSelected={onToggleSelected}
-        onDeleteResource={deleteResource}
-        onSoftDelete={onSoftDelete}
-        parentResourceId={parentResourceId}
-      />
+      <div className={`${level > 0 ? 'ml-4 border-l border-gray-200 pl-4' : ''}`}>
+        <ResourceItem
+          item={item}
+          showCheckbox={showCheckbox}
+          isSelected={isSelected}
+          childrenKb={childrenKb}
+          onToggleSelected={onToggleSelected}
+          onDeleteResource={deleteResource}
+          onSoftDelete={onSoftDelete}
+          parentResourceId={parentResourceId}
+        />
+      </div>
     );
   }
 
@@ -117,26 +120,11 @@ export function ResourceAccordion({
                 />
               )}
               <span>📁</span>
-              <span className="font-medium">{inode_path.path}</span>
+              <span className="font-medium text-base">{inode_path.path}</span>
               
               {/* Show indexed badge if applicable */}
               {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) && (
-                <div className="relative inline-flex h-6 items-center overflow-hidden group">
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteResource();
-                    }}
-                    className="relative h-6 px-2 py-0 flex items-center justify-center bg-blue-500 text-white text-xs rounded transition-colors duration-300 group-hover:bg-red-500 cursor-pointer"
-                  >
-                    <span className="block transition-transform duration-300 group-hover:-translate-y-full">
-                      Indexed
-                    </span>
-                    <span className="pb-0.5 absolute top-full block text-center transition-transform duration-300 group-hover:-translate-y-full">
-                      De-index
-                    </span>
-                  </div>
-                </div>
+                <IndexedBadge onDelete={deleteResource} isDirectory={true} />
               )}
             </div>
             
