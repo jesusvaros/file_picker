@@ -2,7 +2,7 @@
 
 import { type Resource } from "@/app/api/stackai/utils";
 import { useCreateKbWithResources } from "@/app/hooks/useCreateKbWithResources";
-import { useKnowledgeBaseDeleteResource } from "@/app/hooks/useKnowledgeBaseDeleteResource";
+import { useKbDeleteResource } from "@/app/hooks/useKBDeleteResource";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,7 +16,6 @@ export function ResourceList({
   resourceId,
   page,
   onOpenFolder,
-  kbId,
   connectionId,
   orgId,
 }: {
@@ -26,15 +25,13 @@ export function ResourceList({
   resourceId: string;
   page: string|null;
   onOpenFolder: (id: string, label: string) => void;
-  kbId: string | null;
+
   connectionId: string;
   orgId: string;
 }) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const { mutate: deleteResource } =
-    useKnowledgeBaseDeleteResource({ knowledgeBaseId: kbId, resourceId, page });
-
+  const { mutate: deleteResource } = useKbDeleteResource({ resourceId, page });
   const { mutate:createKbwithResources, isPending: isIndexPending, error: indexError } = useCreateKbWithResources();
  
   const toggleSelected = (id: string) => {
@@ -144,7 +141,6 @@ export function ResourceList({
                 variant="link"
                 size="sm"
                 className="px-0 text-red-600 cursor-pointer"
-                disabled={!kbId}
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteResource(inode_path.path);
@@ -155,7 +151,6 @@ export function ResourceList({
               <span className="text-xs opacity-60">File</span>
               </div>
             )}
-            {/* Per-item Add removed in favor of multi-select toolbar */}
             </div>
           </li>
         ))}

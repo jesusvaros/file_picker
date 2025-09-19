@@ -1,4 +1,5 @@
 "use client";
+import { useAppContext } from "@/app/providers";
 import { useMutation } from "@tanstack/react-query";
 
 type IndexingParams = { ocr: boolean; unstructured: boolean };
@@ -9,6 +10,8 @@ type CreateKbResponse = {
 };
 
 export function useCreateKbWithResources() {
+  const { setKbId } = useAppContext();
+
   return useMutation({
     mutationFn: async ({
       connectionId,
@@ -21,6 +24,7 @@ export function useCreateKbWithResources() {
       indexingParams?: IndexingParams;
       orgId: string;
     }): Promise<CreateKbResponse> => {
+      
     
       if (!connectionId) throw new Error("Missing connectionId");
       if (!orgId) throw new Error("Missing orgId");
@@ -61,11 +65,8 @@ export function useCreateKbWithResources() {
       return kb;
     },
 
-    // set new kbId in localStorage
-    onSuccess: (kb) => {
-      try {
-        localStorage.setItem("knowledge_base_id", kb.knowledge_base_id);
-      } catch {}
+    onSuccess: (kb) => {  
+        setKbId(kb.knowledge_base_id);
     },
   });
 }

@@ -1,5 +1,6 @@
 // hooks/useKbChildren.ts
 "use client";
+import { useAppContext } from "@/app/providers";
 import { useQuery } from "@tanstack/react-query";
 
 export type KBItem = {
@@ -16,16 +17,17 @@ export type Paginated<T> = {
   current_cursor?: string | null;
 };
 
-export function useKbChildren({kbId, currentResourcePath = "/", page}: {kbId: string | null, currentResourcePath?: string, page?: string | null}) {
-  const key = ["kb-children", kbId, currentResourcePath, page];
+export function useKbChildren({ currentResourcePath = "/", page}: {currentResourcePath?: string, page?: string | null}) {
+  const { kbId: kbIdCtx } = useAppContext();
+  const key = ["kb-children", kbIdCtx, currentResourcePath, page];
 
   return useQuery<Paginated<KBItem>>({
     queryKey: key,
-    enabled: Boolean(kbId),
+    enabled: Boolean(kbIdCtx),
     queryFn: async () => {
       const searchParams = new URLSearchParams({ resource_path: currentResourcePath});
       if (page) searchParams.set("cursor", page);
-      const res = await fetch(`/api/stackai/kb/${kbId}/children?${searchParams}`);
+      const res = await fetch(`/api/stackai/kb/${kbIdCtx}/children?${searchParams}`);
       if (!res.ok) throw new Error("Failed to load KB files");
       return res.json();
     },

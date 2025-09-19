@@ -7,11 +7,10 @@ import { ResourceList } from "@/components/ResourceList";
 import { useEffect, useMemo, useState } from "react";
 import { useChildren, useConnectionId } from "../hooks/useChildren";
 import { useKbChildren } from "../hooks/useKbChildren";
-import { useKbId } from "../hooks/useKbId";
 
 export default function Page() {
   const { connectionId, orgId, isPending: loadingConn, error: connError, data: connections } = useConnectionId();
-  const { kbId } = useKbId(connectionId);
+
 
   const [breadcrumbs, setBreadcrumbs] = useState<
     { id: string; label: string }[]
@@ -26,12 +25,9 @@ export default function Page() {
     connectionId: connectionId ?? undefined,
     resourceId: currentResourceId ?? "root",
     page,
-    knowledgeBaseId: kbId,
   });
 
-  const { data: childrenKb, isFetching: isFetchingKb } = useKbChildren({kbId:'130fe322-c083-42d1-9af1-c524cc452b84', currentResourcePath: currentResourcePath , page});
-
-  console.log(childrenKb,isFetchingKb)
+  const { data: childrenKb, isFetching: isFetchingKb } = useKbChildren({currentResourcePath: currentResourcePath , page});
 
   const items = data?.data ?? [];
 
@@ -92,7 +88,6 @@ export default function Page() {
             isPending={isPending || isFetching}
             error={error}
             resourceId={currentResourceId ?? "root"}
-            kbId={kbId}
             page={page}
             connectionId={connectionId}
             orgId={orgId}

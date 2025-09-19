@@ -1,0 +1,39 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+
+export type StackConnection = {
+  connection_id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  org_id: string;
+};
+
+
+export function useConnections(options?: { enabled?: boolean }) {
+  const hasStored =
+    typeof window !== "undefined" && Boolean(localStorage.getItem("connectionId"));
+  const enabled = (options?.enabled ?? true) && !hasStored;
+
+  return useQuery<StackConnection[]>({
+    queryKey: ["connections"],
+    queryFn: async () => {
+      const response = await fetch("/api/stackai/connections");
+      if (!response.ok) throw new Error("Error fetching connections");
+      const data = (await response.json()) as StackConnection[];
+      const first = data?.[0];
+      const id = first?.connection_id;
+      const orgId = first?.org_id;
+      if (id) {
+        try {
+          localStorage.setItem("connectionId", id);
+          if (orgId) localStorage.setItem("orgId", orgId);
+        } catch {}
+      }
+      return data;
+    },
+    staleTime: 60_000,
+    enabled,
+  });
+}

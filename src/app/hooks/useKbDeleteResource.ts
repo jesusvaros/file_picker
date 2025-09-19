@@ -1,27 +1,27 @@
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Paginated, Resource } from "../api/stackai/utils";
+import { useAppContext } from "../providers";
 
-export function useKnowledgeBaseDeleteResource({
-  knowledgeBaseId,
+export function useKbDeleteResource({
   resourceId,
   page,
 }: {
-  knowledgeBaseId: string | null;
   resourceId: string;
   page: string | null;
 }) {
   const queryClient = useQueryClient();
-  const key = ["knowledge-base-children", knowledgeBaseId, resourceId, page];
+  const { kbId } = useAppContext();
+  const key = ["knowledge-base-children", kbId, resourceId, page];
   
   return useMutation({
     mutationFn: async (resourcePath: string) => {
-      if (!knowledgeBaseId) {
+      if (!kbId) {
         throw new Error("Missing knowledge base id");
       }
       const searchParams = new URLSearchParams({ resource_path: resourcePath });
       const response = await fetch(
-        `/api/stackai/kb/${knowledgeBaseId}/resources?${searchParams.toString()}`,
+        `/api/stackai/kb/${kbId}/resources?${searchParams.toString()}`,
         { method: "DELETE" }
       );
       if (!response.ok) throw new Error("Delete failed");
