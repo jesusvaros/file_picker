@@ -1,25 +1,28 @@
-import { useState, useEffect } from "react";
-import { type Resource, type Paginated } from "@/app/api/stackai/utils";
+import { type Paginated, type Resource } from "@/app/api/stackai/utils";
 import { useChildren } from "@/app/hooks/useChildren";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ResourceItem } from "./ResourceItem";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect, useState } from "react";
+import { ResourceItem } from "./ResourceItem";
 
-interface ResourceAccordionProps {
+export interface ResourceAccordionProps {
   item: Resource;
   showCheckbox: boolean;
   isSelected: boolean;
   childrenKb?: Paginated<Resource>;
   onToggleSelected: (id: string) => void;
   onDeleteResource: (id: string) => void;
-  onSoftDelete: (id: string) => void;
+  onSoftDelete: ({resourceId, parentResourceId}: {resourceId: string, parentResourceId: string}) => void;
   level?: number;
   selectedResources?: Array<{ resource_id: string; inode_type: string; path: string }>;
   connectionId?: string;
   registerItems?: (items: Resource[]) => void;
   isItemSelected?: (id: string) => boolean;
+  parentResourceId?: string;
 }
+
+
 
 export function ResourceAccordion({
   item,
@@ -34,6 +37,7 @@ export function ResourceAccordion({
   connectionId,
   registerItems,
   isItemSelected,
+  parentResourceId,
 }: ResourceAccordionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { resource_id, inode_type, inode_path } = item;
@@ -83,9 +87,9 @@ export function ResourceAccordion({
         isSelected={isSelected}
         childrenKb={childrenKb}
         onToggleSelected={onToggleSelected}
-        onOpenFolder={() => {}} // Files don't open folders
         onDeleteResource={onDeleteResource}
         onSoftDelete={onSoftDelete}
+        parentResourceId={parentResourceId}
       />
     );
   }
@@ -94,13 +98,10 @@ export function ResourceAccordion({
   return (
     <div className={`${level > 0 ? 'ml-4 border-l border-gray-200 pl-4' : ''}`}>
       <Accordion type="single" collapsible>
-        <AccordionItem value={resource_id} className="border-none">
+        <AccordionItem value={resource_id} className="border-none" onClick={() => setIsOpen(!isOpen)}>
           <div className="flex items-center">
-            {/* Directory item with checkbox - clickable to expand */}
-            <div 
-              className="flex-1 flex items-center gap-2 p-3 hover:bg-muted/40 cursor-pointer"
-              onClick={() => setIsOpen(!isOpen)}
-            >
+            {/* Directory item with checkbox */}
+            <div className="flex-1 flex items-center gap-2 p-3 hover:bg-muted/40">
               {showCheckbox && (
                 <Checkbox
                   checked={isSelected}
@@ -132,26 +133,11 @@ export function ResourceAccordion({
                   </div>
                 </div>
               )}
-              
-              {/* Delete button for directories */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSoftDelete(resource_id);
-                  }}
-                  className="p-1 hover:bg-red-100 rounded text-red-600 hover:text-red-800 transition-colors"
-                  title="Delete folder"
-                >
-                  🗑️
-                </button>
-              </div>
             </div>
             
             {/* Accordion trigger */}
             <AccordionTrigger 
               className="hover:no-underline p-2"
-              onClick={() => setIsOpen(!isOpen)}
             >
               <span className="sr-only">Toggle {inode_path.path}</span>
             </AccordionTrigger>
@@ -192,6 +178,7 @@ export function ResourceAccordion({
                     connectionId={connectionId}
                     registerItems={registerItems}
                     isItemSelected={isItemSelected}
+                    parentResourceId={item.resource_id}
                   />
                 ))}
               </div>

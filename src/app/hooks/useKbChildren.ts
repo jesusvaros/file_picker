@@ -4,18 +4,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Paginated, Resource } from "../api/stackai/utils";
 
 export function useKbChildren({
-  currentResourcePath = "/",
   page,
   enabled = true,
 }: {
-  currentResourcePath?: string;
   page?: string | null;
   enabled?: boolean;
 }) {
   const { kbId: kbIdCtx } = useAppContext();
   const qc = useQueryClient();
 
-  const liveKey = ["kb-children", kbIdCtx, currentResourcePath, page];
+  const liveKey = ["kb-children", kbIdCtx, '', page];
   const stagingKey = ["kb-children:staging"];
 
   // live KB (fetches when kbId exists)
@@ -23,7 +21,7 @@ export function useKbChildren({
     queryKey: liveKey,
     enabled: Boolean(kbIdCtx) && enabled,
     queryFn: async () => {
-      const sp = new URLSearchParams({ resource_path: currentResourcePath });
+      const sp = new URLSearchParams({ resource_path: "/" }); // Use root path since no breadcrumbs
       if (page) sp.set("cursor", page);
       const res = await fetch(`/api/stackai/kb/${kbIdCtx}/children?` + sp);
       if (!res.ok) throw new Error("Failed to load KB files");

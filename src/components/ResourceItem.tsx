@@ -1,24 +1,14 @@
-import { type Resource, type Paginated } from "@/app/api/stackai/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format, parseISO } from "date-fns";
+import { ResourceAccordionProps } from "./ResourceAccordion";
 
-interface ResourceItemProps {
-  item: Resource;
-  showCheckbox: boolean;
-  isSelected: boolean;
-  childrenKb?: Paginated<Resource>;
-  onToggleSelected: (id: string) => void;
-  onOpenFolder: (id: string, path: string) => void;
-  onDeleteResource: (id: string) => void;
-  onSoftDelete: (id: string) => void;
-  mode?: "navigation" | "accordion"; // navigation shows Open button, accordion doesn't
-}
 
 const isDirectory = (inode_type: "directory" | "file") => {
   return inode_type === "directory";
 };
+
 
 export function ResourceItem({
   item,
@@ -26,13 +16,14 @@ export function ResourceItem({
   isSelected,
   childrenKb,
   onToggleSelected,
-  onOpenFolder,
   onDeleteResource,
   onSoftDelete,
-  mode = "navigation",
-}: ResourceItemProps) {
+  parentResourceId
+}: ResourceAccordionProps) {
   const { resource_id, inode_type, inode_path, modified_at } = item;
   const isIndexed = childrenKb?.data.some((i) => i.inode_path.path === inode_path.path);
+
+  console.log(item)
 
   return (
     <li
@@ -40,7 +31,6 @@ export function ResourceItem({
       className={`hover:bg-muted/40 ${isDirectory(inode_type) ? "cursor-pointer" : ""} flex items-center justify-between p-3 ${
         isSelected ? "bg-blue-50 border-l-4 border-l-blue-500" : ""
       }`}
-      onClick={isDirectory(inode_type) && !showCheckbox ? () => onOpenFolder(resource_id, inode_path.path) : undefined}
     >
       <div className="flex items-center gap-2">
         {showCheckbox && (
@@ -80,7 +70,7 @@ export function ResourceItem({
         )}
       </div>
       <div className="flex items-center gap-2">
-        {isDirectory(inode_type) && mode === "navigation" ? (
+        {isDirectory(inode_type) ? (
           <Button
             variant="link"
             size="sm"
@@ -88,8 +78,6 @@ export function ResourceItem({
           >
             Open
           </Button>
-        ) : isDirectory(inode_type) && mode === "accordion" ? (
-          <span className="text-xs opacity-60">Directory</span>
         ) : (
           <div className="flex items-center gap-2">
             <Button
@@ -98,7 +86,7 @@ export function ResourceItem({
               className="p-2 cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
-                onSoftDelete(resource_id);
+                onSoftDelete({resourceId: resource_id, parentResourceId: parentResourceId ?? ''});
               }}
             >
               🗑️

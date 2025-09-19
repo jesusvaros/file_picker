@@ -24,22 +24,20 @@ function saveHiddenSet(connectionId: string, set: Set<string>) {
 
 export function useConnectionSoftDelete({
   connectionId,
-  currentResourceId, 
   page,                 
 }: {
   connectionId: string;
-  currentResourceId?: string | null;
   page?: string | null;
 }) {
   const qc = useQueryClient();
-  const key = [queryKeyBase_children, connectionId, currentResourceId, page];
 
   return useMutation({
-    mutationFn: async (resourceId: string) => {
-      return resourceId;
+    mutationFn: async ({ resourceId, parentResourceId }: { resourceId: string; parentResourceId?: string }) => {
+      return { resourceId, parentResourceId };
     },
 
-    onMutate: async (resourceId: string) => {
+    onMutate: async ({ resourceId, parentResourceId }: { resourceId: string; parentResourceId?: string }) => {
+      const key = [queryKeyBase_children, connectionId, parentResourceId, page];
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueryData<Paginated<Resource>>(key);
 
@@ -53,10 +51,11 @@ export function useConnectionSoftDelete({
       hidden.add(resourceId);
       saveHiddenSet(connectionId, hidden);
 
-      return { prev, resourceId };
+      return { prev, resourceId, parentResourceId };
     },
 
     onError: (_err, _vars, ctx) => {
+      const key = [queryKeyBase_children, connectionId, ctx?.parentResourceId, page];
       if (ctx?.prev) qc.setQueryData(key, ctx.prev);
       if (ctx?.resourceId) {
         const hidden = loadHiddenSet(connectionId);

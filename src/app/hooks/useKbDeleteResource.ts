@@ -4,15 +4,13 @@ import type { Paginated, Resource } from "../api/stackai/utils";
 import { useAppContext } from "../providers";
 
 export function useKbDeleteResource({
-  resourceId,
   page,
 }: {
-  resourceId: string;
   page: string | null;
 }) {
   const queryClient = useQueryClient();
   const { kbId } = useAppContext();
-  const key = ["knowledge-base-children", kbId, resourceId, page];
+  const key = ["knowledge-base-children", kbId, "/", page]; // Use root path since no breadcrumbs
   
   return useMutation({
     mutationFn: async (resourcePath: string) => {

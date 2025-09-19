@@ -17,7 +17,6 @@ export function ResourceList({
   page,
   connectionId,
   orgId,
-  breadcrumbs,
 }: {
   items: Resource[];
   isPending: boolean;
@@ -25,19 +24,15 @@ export function ResourceList({
   page: string|null;
   connectionId: string;
   orgId: string;
-  breadcrumbs: { id: string; label: string }[];
 }) {
-  const currentResourceId = breadcrumbs[breadcrumbs.length - 1]?.id;
-  const currentResourcePath = breadcrumbs[breadcrumbs.length - 1]?.label;
 
-  // Hooks
-  const { mutate: deleteResource } = useKbDeleteResource({ resourceId: currentResourceId, page });
+  const { mutate: deleteResource } = useKbDeleteResource({ page });
   const { mutate: createKbwithResources, error: indexError, isPending: isCreatingKb } = useCreateKbWithResources();
-  const { data: childrenKb } = useKbChildren({ currentResourcePath, page });
+  const { data: childrenKb } = useKbChildren({ page });
 
+  //ok
   const { mutate: softDelete } = useConnectionSoftDelete({
     connectionId,
-    currentResourceId,
     page,
   });
 
@@ -104,7 +99,6 @@ export function ResourceList({
       />
       
       <ul className="divide-y">
-        {/* Show all items with proper selection state */}
         {items.map(item => (
           <ResourceAccordion
             key={item.resource_id}
@@ -119,6 +113,7 @@ export function ResourceList({
             connectionId={connectionId}
             registerItems={registerItems}
             isItemSelected={isItemSelected}
+            parentResourceId={'/'}
           />
         ))}
         
