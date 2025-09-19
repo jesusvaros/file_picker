@@ -25,7 +25,7 @@ export default function Page() {
       }}
     >
       <MacWindow fetching={isFetching}>
-        <div className="p-6 space-y-4">
+        <div className="p-6 pt-2 space-y-4">
 
           {!connectionId && loadingConn && (
             <div className="flex items-center justify-center py-12">

@@ -22,7 +22,7 @@ export function ResourceListHeader({
   onIndexClick,
 }: ResourceListHeaderProps) {
   return (
-    <div className="flex items-center justify-between p-3 border-b">
+    <div className="flex items-center justify-between p-3">
       {!isSelectionMode ? (
         <>
           <div className="text-sm opacity-70">
