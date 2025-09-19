@@ -6,7 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect } from "react";
-import { DeleteAction } from "./DeleteAction";
+import { FileIcon } from "./FileIcon";
 import { IndexedBadge } from "./IndexedBadge";
 import { ResourceItem } from "./ResourceItem";
 
@@ -107,44 +107,35 @@ export function ResourceAccordion({
     <div className={`${level > 0 ? 'ml-4 border-l border-gray-200 pl-4' : ''}`}>
       <Accordion type="single" collapsible>
         <AccordionItem value={resource_id} className="border-none">
-          <AccordionTrigger className="flex items-center w-full hover:no-underline hover:bg-muted/40 p-0 pr-4 [&[data-state=open]>svg]:rotate-180 cursor-pointer">
-            {/* Directory item with checkbox */}
-            <div 
-              className="flex-1 flex items-center justify-between p-3"
-            >
-              <div className="flex items-center gap-2">
-                {showCheckbox && (
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => {
-                      onToggleSelected(resource_id);
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                )}
-                <span>📁</span>
-                <span className="font-medium text-base">{inode_path.path}</span>
-                
-                {/* Show indexed badge if applicable */}
-                {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) && (
-                  <IndexedBadge onDelete={deleteResource} isDirectory={true} />
-                )}
-              </div>
-              
-              {/* Delete action for directories */}
-              <div 
-                className="flex items-center gap-2"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <DeleteAction
-                  onDelete={() => {
-                    onSoftDelete({resourceId: resource_id, parentResourceId });
+          <div className="flex items-center w-full hover:bg-muted/40">
+            {/* Directory item with checkbox and icon */}
+            <div className="flex items-center gap-2 p-3">
+              {showCheckbox && (
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => {
+                    onToggleSelected(resource_id);
                   }}
-                  isDirectory={true}
+                  onClick={(e) => e.stopPropagation()}
                 />
-              </div>
+              )}
+              <FileIcon 
+                isDirectory={true}
+                onDelete={() => {
+                  onSoftDelete({resourceId: resource_id, parentResourceId });
+                }}
+              />
+              <span className="font-medium text-base">{inode_path.path}</span>
+              
+              {/* Show indexed badge if applicable */}
+              {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) && (
+                <IndexedBadge onDelete={deleteResource} isDirectory={true} />
+              )}
             </div>
-          </AccordionTrigger>
+            
+            {/* Accordion trigger button */}
+            <AccordionTrigger className="flex-shrink-0 p-3 hover:no-underline [&[data-state=open]>svg]:rotate-180" />
+          </div>
           
           <AccordionContent>
             {isLoadingChildren && shouldFetchChildren && (
