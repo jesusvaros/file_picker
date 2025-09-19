@@ -26,11 +26,33 @@ export function useKbChildren({
       const sp = new URLSearchParams({ resource_path: resourcePath }); 
       if (page) sp.set("cursor", page);
       const res = await fetch(`/api/stackai/kb/${kbIdCtx}/children?` + sp);
-      if (!res.ok) throw new Error("Failed to load KB files");
+      
+      // Handle path not found errors (500/404)
+      if (!res.ok) {
+        if (res.status === 500 || res.status === 404) {
+          console.warn(`Path '${resourcePath}' not found in KB, returning empty result`);
+          return {
+            data: [],
+            next_cursor: null,
+            current_cursor: null,
+          };
+        }
+        throw new Error("Failed to load KB files");
+      }
+      
       qc.removeQueries({ queryKey: stagingKey });
       return res.json();
     },
-    staleTime: 10_000,
+    staleTime: 30_000,
+    retry: (failureCount, error) => {
+      // Don't retry on path not found errors (400/404)
+      if (error?.message?.includes('Path error') || 
+          error?.message?.includes('does not exist')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), 
   });
 
   const staging = useQuery<Paginated<Resource>, Error, Paginated<Resource>>({
