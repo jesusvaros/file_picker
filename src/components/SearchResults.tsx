@@ -17,9 +17,7 @@ export function SearchResults({
     <ul className="space-y-1">
       {searchResults.map((item: Resource) => {
         const path = item.inode_path?.path ?? "";
-        console.log(path);
         const name = path.split("/").filter(Boolean).pop() ?? path;
-        console.log(path);
         return (
           <li key={item.resource_id} className="flex items-center gap-3 p-3 hover:bg-muted/40 rounded-md">
             <FileIcon 

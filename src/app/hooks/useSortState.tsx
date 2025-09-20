@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
+import { ArrowUpAZ, ArrowDownZA, Calendar, CalendarDays } from "lucide-react";
 
 export type SortKey = "name" | "date";
 export type SortDirection = "asc" | "desc";
@@ -14,14 +15,34 @@ export type SortOption = {
   key: SortKey;
   direction: SortDirection;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
 };
 
 const SORT_OPTIONS: SortOption[] = [
-  { key: "name", direction: "asc", label: "Name A-Z", icon: "↑" },
-  { key: "name", direction: "desc", label: "Name Z-A", icon: "↓" },
-  { key: "date", direction: "desc", label: "Date (Newest)", icon: "🕐↓" },
-  { key: "date", direction: "asc", label: "Date (Oldest)", icon: "🕐↑" },
+  { 
+    key: "name", 
+    direction: "asc", 
+    label: "Name A-Z", 
+    icon: React.createElement(ArrowUpAZ, { className: "h-4 w-4" }) 
+  },
+  { 
+    key: "name", 
+    direction: "desc", 
+    label: "Name Z-A", 
+    icon: React.createElement(ArrowDownZA, { className: "h-4 w-4" }) 
+  },
+  { 
+    key: "date", 
+    direction: "desc", 
+    label: "Date (Newest)", 
+    icon: React.createElement(Calendar, { className: "h-4 w-4" }) 
+  },
+  { 
+    key: "date", 
+    direction: "asc", 
+    label: "Date (Oldest)", 
+    icon: React.createElement(CalendarDays, { className: "h-4 w-4" }) 
+  },
 ];
 
 export function useSortState(initialSort: SortState = { key: "name", direction: "asc" }) {

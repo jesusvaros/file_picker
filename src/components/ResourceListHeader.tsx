@@ -1,7 +1,9 @@
 import { type SortOption } from "@/app/hooks/useSortState";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { X } from "lucide-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ActionButtons } from "./ActionButtons";
+import { SearchControl } from "./SearchControl";
+import { SortButton } from "./SortButton";
 import * as React from "react";
 
 interface ResourceListHeaderProps {
@@ -40,45 +42,13 @@ export function ResourceListHeader({
   const isSearchActive = searchQuery.trim().length > 0 || isSearchFocused;
 
   return (
-    <div className="space-y-3 p-3">
-      {/* Search and Sort Controls */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <Input
-            placeholder="Search files and folders..."
-            value={searchQuery}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
-            className="pr-8"
-          />
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onSearchChange("")}
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100 rounded-full"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
-        {!isSearchActive && (
-          <Button
-            variant="outline"
-            onClick={onSortClick}
-            className="flex items-center gap-2 min-w-fit h-8 px-3 text-sm transition-all duration-200"
-          >
-            <span>{currentSortOption.icon}</span>
-            <span className="hidden sm:inline">{currentSortOption.label}</span>
-          </Button>
-        )}
-      </div>
-
-      {/* Status and Action Bar */}
-      <div className="flex items-center justify-between">
+    <TooltipProvider>
+      <div className="p-3">
+        {/* Combined Status and Controls Bar */}
+        <div className="flex items-center justify-between">
         {!isSelectionMode ? (
           <>
+            {/* Left side: Status only */}
             <div className="text-sm opacity-70">
               {searchQuery ? (
                 <>
@@ -88,16 +58,27 @@ export function ResourceListHeader({
                 `${itemsCount} items`
               )}
             </div>
-            {!searchQuery && (
-              <Button
-                size="lg"
-                variant="default"
-                onClick={onStartIndexing}
-                className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-xl cursor-pointer"
-              >
-                Start Indexing
-              </Button>
-            )}
+            
+            {/* Right side: Search + Sort + Start Indexing */}
+            <div className="flex items-center gap-2">
+              <SearchControl
+                searchQuery={searchQuery}
+                onSearchChange={onSearchChange}
+                isSearchActive={isSearchActive}
+                onFocusChange={setIsSearchFocused}
+              />
+              
+              <SortButton
+                currentSortOption={currentSortOption}
+                onSortClick={onSortClick}
+                isSearchActive={isSearchActive}
+              />
+              
+              <ActionButtons
+                onStartIndexing={onStartIndexing}
+                isSearchActive={isSearchActive}
+              />
+            </div>
           </>
         ) : (
           <>
@@ -131,6 +112,7 @@ export function ResourceListHeader({
           </>
         )}
       </div>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }

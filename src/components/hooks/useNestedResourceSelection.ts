@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import type { Resource, Paginated } from "@/app/api/stackai/utils";
 
 interface SelectedResource {
@@ -13,26 +13,45 @@ interface UseNestedResourceSelectionProps {
 }
 
 export function useNestedResourceSelection({ items, childrenKb }: UseNestedResourceSelectionProps) {
-  const [selectedResources, setSelectedResources] = useState<SelectedResource[]>([]);
+  const [userSelectedResources, setUserSelectedResources] = useState<SelectedResource[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [allAvailableItems, setAllAvailableItems] = useState<Map<string, Resource>>(new Map());
 
-  // Sync selectedIds with childrenKb (already indexed items)
-  useEffect(() => {
+  // Calculate indexed resources (already indexed items from KB) - no useEffect needed
+  const indexedResources = useMemo(() => {
     if (!childrenKb?.data || !items?.length) {
-      setSelectedResources([]);
-      return;
+      return [];
     }
-    const indexedPaths = new Set(childrenKb?.data?.map((i) => i.inode_path.path));
-    const nextSelected = items
+    const indexedPaths = new Set(childrenKb.data.map((i) => i.inode_path.path));
+    return items
       .filter((it) => indexedPaths.has(it.inode_path.path))
       .map((it) => ({ 
         resource_id: it.resource_id, 
         inode_type: it.inode_type, 
         path: it.inode_path.path 
       }));
-    setSelectedResources(nextSelected);
   }, [childrenKb?.data, items]);
+
+  // Combine indexed and user-selected resources
+  const selectedResources = useMemo(() => {
+    const combined = [...indexedResources, ...userSelectedResources];
+    // Deduplicate by resource_id
+    const seen = new Set<string>();
+    return combined.filter(item => {
+      if (seen.has(item.resource_id)) return false;
+      seen.add(item.resource_id);
+      return true;
+    });
+  }, [indexedResources, userSelectedResources]);
+
+  // Create available items map from current items - no useEffect needed
+  const availableItemsMap = useMemo(() => {
+    const map = new Map(allAvailableItems);
+    items.forEach(item => {
+      map.set(item.resource_id, item);
+    });
+    return map;
+  }, [items, allAvailableItems]);
 
   // Register items as they become available (from accordion expansions)
   const registerItems = useCallback((newItems: Resource[]) => {
@@ -44,11 +63,6 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
       return updated;
     });
   }, []);
-
-  // Initialize with root items
-  useEffect(() => {
-    registerItems(items);
-  }, [items, registerItems]);
 
   // Helper functions for better readability
   const removeDirectoryAndChildren = useCallback((directoryItem: Resource, selectedItems: SelectedResource[]) => {
@@ -92,7 +106,7 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
       const childrenToAdd: SelectedResource[] = [];
       
       // Find all items that are children of this directory
-      allAvailableItems.forEach((availableItem) => {
+      availableItemsMap.forEach((availableItem) => {
         if (availableItem.inode_path.path.startsWith(item.inode_path.path + "/")) {
           // Don't add if already selected
           const alreadySelected = newSelection.some(s => s.resource_id === availableItem.resource_id);
@@ -110,12 +124,12 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
     }
 
     return newSelection;
-  }, [allAvailableItems]);
+  }, [availableItemsMap]);
 
   const toggleSelected = useCallback((id: string) => {
-    setSelectedResources((prev) => {
+    setUserSelectedResources((prev) => {
       // Find the item in our registry
-      const item = allAvailableItems.get(id);
+      const item = availableItemsMap.get(id);
       if (!item) return prev; // safety: if item not found, don't add incomplete entry
 
       const exists = prev.some((x) => x.resource_id === id);
@@ -132,7 +146,7 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
         return addItemToSelection(item, prev);
       }
     });
-  }, [allAvailableItems, removeDirectoryAndChildren, removeFileAndCleanupParents, addItemToSelection]);
+  }, [availableItemsMap, removeDirectoryAndChildren, removeFileAndCleanupParents, addItemToSelection]);
 
   const handleStartIndexing = () => {
     setIsSelectionMode(true);
@@ -140,18 +154,13 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
 
   const handleCancelSelection = () => {
     setIsSelectionMode(false);
-    // Only remove non-indexed items from selection
-    if (childrenKb?.data) {
-      const indexedPaths = new Set(childrenKb.data.map((i) => i.inode_path.path));
-      setSelectedResources(prev => 
-        prev.filter(selected => indexedPaths.has(selected.path))
-      );
-    }
+    // Clear user selections (indexed items will remain via indexedResources)
+    setUserSelectedResources([]);
   };
 
   const handleIndexComplete = () => {
     setIsSelectionMode(false);
-    setSelectedResources([]);
+    setUserSelectedResources([]);
   };
 
   // Check if an item is selected
