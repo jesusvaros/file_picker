@@ -1,5 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { format, parseISO } from "date-fns";
+import { useMemo } from "react";
 import { FileIcon } from "./FileIcon";
 import { IndexedBadge } from "./IndexedBadge";
 import { ResourceAccordionProps } from "./ResourceAccordion";
@@ -23,9 +24,13 @@ export function ResourceItem({
   parentResourceId,
 }: ItemsProps) {
   const { resource_id, inode_type, inode_path } = item;
-  const isIndexed = childrenKb?.data.some(
-    (i) => i.inode_path.path === inode_path.path,
-  );
+  
+  // Memoize KB item lookup to avoid expensive array operations on every render
+  const kbItem = useMemo(() => {
+    return childrenKb?.data.find((i) => i.inode_path.path === inode_path.path);
+  }, [childrenKb?.data, inode_path.path]);
+
+  const isIndexed = Boolean(kbItem);
 
   return (
     <li
@@ -52,18 +57,11 @@ export function ResourceItem({
         {isIndexed && (
           <>
             <IndexedBadge onDelete={onDeleteResource} />
-            {(() => {
-              const kbItem = childrenKb?.data.find(
-                (i) => i.inode_path.path === inode_path.path,
-              );
-              return (
-                kbItem?.modified_at && (
-                  <span className="text-xs opacity-60">
-                    {format(parseISO(kbItem.modified_at), "PP")}
-                  </span>
-                )
-              );
-            })()}
+            {kbItem?.modified_at && (
+              <span className="text-xs opacity-60">
+                {format(parseISO(kbItem.modified_at), "PP")}
+              </span>
+            )}
           </>
         )}
       </div>

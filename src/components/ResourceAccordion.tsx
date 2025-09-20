@@ -12,7 +12,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { FileIcon } from "./FileIcon";
 import { IndexedBadge } from "./IndexedBadge";
 import { ResourceItem } from "./ResourceItem";
@@ -59,6 +59,16 @@ export function ResourceAccordion({
   sortDirection = "asc",
 }: ResourceAccordionProps) {
   const { resource_id, inode_type, inode_path } = item;
+
+  // Memoize KB item lookup to avoid expensive array operations on every render
+  const kbItem = useMemo(() => {
+    return childrenKb?.data.find((i) => i.inode_path.path === inode_path.path);
+  }, [childrenKb?.data, inode_path.path]);
+
+  // Memoize indexed status check
+  const isIndexed = useMemo(() => {
+    return Boolean(kbItem);
+  }, [kbItem]);
 
   // Only fetch children when it's a directory (accordion will handle lazy loading)
   const shouldFetchChildren = inode_type === "directory";
@@ -168,24 +178,15 @@ export function ResourceAccordion({
               <div className="flex w-full items-center gap-2">
                 <span className="text-base font-medium">{inode_path.path}</span>
 
-                {childrenKb?.data.some(
-                  (i) => i.inode_path.path === inode_path.path,
-                ) && (
+                {isIndexed && (
                   <IndexedBadge onDelete={deleteResource} isDirectory={true} />
                 )}
 
-                {(() => {
-                  const kbItem = childrenKb?.data.find(
-                    (i) => i.inode_path.path === inode_path.path,
-                  );
-                  return (
-                    kbItem?.modified_at && (
-                      <span className="text-xs opacity-60">
-                        {format(parseISO(kbItem.modified_at), "PP")}
-                      </span>
-                    )
-                  );
-                })()}
+                {kbItem?.modified_at && (
+                  <span className="text-xs opacity-60">
+                    {format(parseISO(kbItem.modified_at), "PP")}
+                  </span>
+                )}
               </div>
             </AccordionTrigger>
           </div>
