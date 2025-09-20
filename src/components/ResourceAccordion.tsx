@@ -174,11 +174,18 @@ export function ResourceAccordion({
                   <IndexedBadge onDelete={deleteResource} isDirectory={true} />
                 )}
 
-                {item.modified_at && (
-                  <span className="text-xs opacity-60">
-                    {format(parseISO(item.modified_at), "PP")}
-                  </span>
-                )}
+                {(() => {
+                  const kbItem = childrenKb?.data.find(
+                    (i) => i.inode_path.path === inode_path.path,
+                  );
+                  return (
+                    kbItem?.modified_at && (
+                      <span className="text-xs opacity-60">
+                        {format(parseISO(kbItem.modified_at), "PP")}
+                      </span>
+                    )
+                  );
+                })()}
               </div>
             </AccordionTrigger>
           </div>
