@@ -1,4 +1,9 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { File, Folder, X } from "lucide-react";
 import { useState } from "react";
 
@@ -14,47 +19,27 @@ export function FileIcon({ isDirectory, onDelete, size = 20 }: FileIconProps) {
   const IconComponent = isDirectory ? Folder : File;
 
   return (
-    <div 
+    <div
       className="relative inline-block cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <IconComponent 
-        size={size} 
-        className={`
-          transition-colors duration-200
-          ${isDirectory 
-            ? 'text-blue-500 hover:text-blue-600' 
-            : 'text-gray-500 hover:text-gray-600'
-          }
-        `}
+      <IconComponent
+        size={size}
+        className={`transition-colors duration-200 ${
+          isDirectory
+            ? "text-blue-500 hover:text-blue-600"
+            : "text-gray-500 hover:text-gray-600"
+        } `}
       />
-      
+
       {/* Delete cross on hover */}
       {isHovered && onDelete && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                className="
-                  absolute 
-                  -top-1 
-                  -right-1 
-                  w-4 
-                  h-4 
-                  bg-red-500 
-                  hover:bg-red-600 
-                  text-white 
-                  rounded-full 
-                  flex 
-                  items-center 
-                  justify-center 
-                  transition-all 
-                  duration-200 
-                  shadow-sm
-                  hover:shadow-md
-                  z-10
-                "
+                className="absolute -top-1 -right-1 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm transition-all duration-200 hover:bg-red-600 hover:shadow-md"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete();
@@ -62,9 +47,9 @@ export function FileIcon({ isDirectory, onDelete, size = 20 }: FileIconProps) {
               >
                 <X size={10} className="cursor-pointer" />
               </button>
-            </TooltipTrigger >
+            </TooltipTrigger>
             <TooltipContent>
-              <p>Delete {isDirectory ? 'folder' : 'file'}</p>
+              <p>Delete {isDirectory ? "folder" : "file"}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

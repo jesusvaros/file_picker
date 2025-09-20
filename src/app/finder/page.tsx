@@ -6,32 +6,39 @@ import { useState } from "react";
 import { useConnectionId } from "../hooks/useConnections";
 
 export default function Page() {
-  const { connectionId, orgId, isPending: loadingConn, error: connError } = useConnectionId();
+  const {
+    connectionId,
+    orgId,
+    isPending: loadingConn,
+    error: connError,
+  } = useConnectionId();
 
   const [page, setPage] = useState<string | null>(null);
 
   return (
-    <main 
-      className="h-screen p-8 flex items-center justify-center bg-cover bg-center bg-no-repeat overflow-hidden"
+    <main
+      className="flex h-screen items-center justify-center overflow-hidden bg-cover bg-center bg-no-repeat p-8"
       style={{
-        backgroundImage: "url('https://upload.wikimedia.org/wikipedia/en/2/27/Bliss_%28Windows_XP%29.png')"
+        backgroundImage:
+          "url('https://upload.wikimedia.org/wikipedia/en/2/27/Bliss_%28Windows_XP%29.png')",
       }}
     >
       <MacWindow>
-        <div className="p-6 pt-2 space-y-4">
-
+        <div className="space-y-4 p-6 pt-2">
           {!connectionId && loadingConn && (
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center space-x-3">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-600"></div>
                 <p className="text-gray-600">Loading connections…</p>
               </div>
             </div>
           )}
-          
+
           {!connectionId && connError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-600 font-medium">Error connections: {String(connError)}</p>
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+              <p className="font-medium text-red-600">
+                Error connections: {String(connError)}
+              </p>
             </div>
           )}
 
@@ -48,4 +55,3 @@ export default function Page() {
     </main>
   );
 }
-

@@ -13,10 +13,17 @@ interface UseNestedResourceSelectionProps {
   childrenKb?: Paginated<Resource>;
 }
 
-export function useNestedResourceSelection({ items, childrenKb }: UseNestedResourceSelectionProps) {
-  const [selectedResources, setSelectedResources] = useState<SelectedResource[]>([]);
+export function useNestedResourceSelection({
+  items,
+  childrenKb,
+}: UseNestedResourceSelectionProps) {
+  const [selectedResources, setSelectedResources] = useState<
+    SelectedResource[]
+  >([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const [allAvailableItems, setAllAvailableItems] = useState<Map<string, Resource>>(new Map());
+  const [allAvailableItems, setAllAvailableItems] = useState<
+    Map<string, Resource>
+  >(new Map());
   const [hasInitialized, setHasInitialized] = useState(false);
 
   // Calculate indexed resources (already indexed items from KB) - these are the default selections
@@ -27,18 +34,17 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
     const indexedPaths = new Set(childrenKb.data.map((i) => i.inode_path.path));
     return items
       .filter((it) => indexedPaths.has(it.inode_path.path))
-      .map((it) => ({ 
-        resource_id: it.resource_id, 
-        inode_type: it.inode_type, 
-        path: it.inode_path.path 
+      .map((it) => ({
+        resource_id: it.resource_id,
+        inode_type: it.inode_type,
+        path: it.inode_path.path,
       }));
   }, [childrenKb?.data, items]);
-
 
   // Create available items map from current items
   const availableItemsMap = useMemo(() => {
     const map = new Map(allAvailableItems);
-    items.forEach(item => {
+    items.forEach((item) => {
       map.set(item.resource_id, item);
     });
     return map;
@@ -46,9 +52,9 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
 
   // Register items as they become available (from accordion expansions)
   const registerItems = useCallback((newItems: Resource[]) => {
-    setAllAvailableItems(prev => {
+    setAllAvailableItems((prev) => {
       const updated = new Map(prev);
-      newItems.forEach(item => {
+      newItems.forEach((item) => {
         updated.set(item.resource_id, item);
       });
       return updated;
@@ -56,109 +62,133 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
   }, []);
 
   // Helper functions for better readability
-  const removeDirectoryAndChildren = useCallback((directoryItem: Resource, selectedItems: SelectedResource[]) => {
-    return selectedItems.filter((x) => {
-      if (x.resource_id === directoryItem.resource_id) return false; // Remove the directory itself
-      // Remove children (items whose path starts with this directory's path)
-      return !x.path.startsWith(directoryItem.inode_path.path + "/");
-    });
-  }, []);
-
-  const removeFileAndCleanupParents = useCallback((fileId: string, selectedItems: SelectedResource[]) => {
-    // First remove the file
-    const withoutFile = selectedItems.filter((x) => x.resource_id !== fileId);
-    
-    // Then remove any parent directories that no longer have selected children
-    return withoutFile.filter((selected) => {
-      if (selected.inode_type !== "directory") return true;
-      
-      // Check if this directory still has selected children
-      const hasSelectedChildren = withoutFile.some((child) => 
-        child.resource_id !== selected.resource_id && 
-        child.path.startsWith(selected.path + "/")
-      );
-      
-      return hasSelectedChildren;
-    });
-  }, []);
-
-  const addItemToSelection = useCallback((item: Resource, selectedItems: SelectedResource[]) => {
-    const newItem = {
-      resource_id: item.resource_id,
-      inode_type: item.inode_type,
-      path: item.inode_path.path,
-    };
-
-    let newSelection = [...selectedItems, newItem];
-
-    // If it's a directory, also add all visible children for UI feedback
-    // (Backend will handle the actual cascade, but UI should show children as selected)
-    if (item.inode_type === "directory") {
-      const childrenToAdd: SelectedResource[] = [];
-      
-      // Find all items that are children of this directory
-      availableItemsMap.forEach((availableItem) => {
-        if (availableItem.inode_path.path.startsWith(item.inode_path.path + "/")) {
-          // Don't add if already selected
-          const alreadySelected = newSelection.some(s => s.resource_id === availableItem.resource_id);
-          if (!alreadySelected) {
-            childrenToAdd.push({
-              resource_id: availableItem.resource_id,
-              inode_type: availableItem.inode_type,
-              path: availableItem.inode_path.path,
-            });
-          }
-        }
+  const removeDirectoryAndChildren = useCallback(
+    (directoryItem: Resource, selectedItems: SelectedResource[]) => {
+      return selectedItems.filter((x) => {
+        if (x.resource_id === directoryItem.resource_id) return false; // Remove the directory itself
+        // Remove children (items whose path starts with this directory's path)
+        return !x.path.startsWith(directoryItem.inode_path.path + "/");
       });
-      
-      newSelection = [...newSelection, ...childrenToAdd];
-    }
+    },
+    [],
+  );
 
-    return newSelection;
-  }, [availableItemsMap]);
+  const removeFileAndCleanupParents = useCallback(
+    (fileId: string, selectedItems: SelectedResource[]) => {
+      // First remove the file
+      const withoutFile = selectedItems.filter((x) => x.resource_id !== fileId);
 
-  const toggleSelected = useCallback((id: string) => {
-    setSelectedResources((prev) => {
-      // Find the item in our registry
-      const item = availableItemsMap.get(id);
-      if (!item) return prev; // safety: if item not found, don't add incomplete entry
+      // Then remove any parent directories that no longer have selected children
+      return withoutFile.filter((selected) => {
+        if (selected.inode_type !== "directory") return true;
 
-      const exists = prev.some((x) => x.resource_id === id);
-      
-      if (exists) {
-        // Check if user is trying to unselect an item whose parent directory is selected
-        const hasSelectedParent = prev.some((selected) => 
-          selected.resource_id !== id &&
-          selected.inode_type === "directory" &&
-          item.inode_path.path.startsWith(selected.path + "/")
+        // Check if this directory still has selected children
+        const hasSelectedChildren = withoutFile.some(
+          (child) =>
+            child.resource_id !== selected.resource_id &&
+            child.path.startsWith(selected.path + "/"),
         );
 
-        if (hasSelectedParent) {
-          const parentDir = prev.find((selected) => 
-            selected.inode_type === "directory" &&
-            item.inode_path.path.startsWith(selected.path + "/")
-          );
-          
-          toast.info("Cannot unselect item", {
-            description: `This ${item.inode_type} is included because its parent directory "${parentDir?.path}" is selected. Unselect the parent directory first.`,
-            duration: 4000,
-          });
-          
-          return prev;
-        }
+        return hasSelectedChildren;
+      });
+    },
+    [],
+  );
 
-        // Removing an item - this now works for both indexed and user-selected items
-        if (item.inode_type === "directory") {
-          return removeDirectoryAndChildren(item, prev);
-        } else {
-          return removeFileAndCleanupParents(id, prev);
-        }
-      } else {
-        // Adding an item
-        return addItemToSelection(item, prev);
+  const addItemToSelection = useCallback(
+    (item: Resource, selectedItems: SelectedResource[]) => {
+      const newItem = {
+        resource_id: item.resource_id,
+        inode_type: item.inode_type,
+        path: item.inode_path.path,
+      };
+
+      let newSelection = [...selectedItems, newItem];
+
+      // If it's a directory, also add all visible children for UI feedback
+      // (Backend will handle the actual cascade, but UI should show children as selected)
+      if (item.inode_type === "directory") {
+        const childrenToAdd: SelectedResource[] = [];
+
+        // Find all items that are children of this directory
+        availableItemsMap.forEach((availableItem) => {
+          if (
+            availableItem.inode_path.path.startsWith(item.inode_path.path + "/")
+          ) {
+            // Don't add if already selected
+            const alreadySelected = newSelection.some(
+              (s) => s.resource_id === availableItem.resource_id,
+            );
+            if (!alreadySelected) {
+              childrenToAdd.push({
+                resource_id: availableItem.resource_id,
+                inode_type: availableItem.inode_type,
+                path: availableItem.inode_path.path,
+              });
+            }
+          }
+        });
+
+        newSelection = [...newSelection, ...childrenToAdd];
       }
-    });
-  }, [availableItemsMap, removeDirectoryAndChildren, removeFileAndCleanupParents, addItemToSelection]);
+
+      return newSelection;
+    },
+    [availableItemsMap],
+  );
+
+  const toggleSelected = useCallback(
+    (id: string) => {
+      setSelectedResources((prev) => {
+        // Find the item in our registry
+        const item = availableItemsMap.get(id);
+        if (!item) return prev; // safety: if item not found, don't add incomplete entry
+
+        const exists = prev.some((x) => x.resource_id === id);
+
+        if (exists) {
+          // Check if user is trying to unselect an item whose parent directory is selected
+          const hasSelectedParent = prev.some(
+            (selected) =>
+              selected.resource_id !== id &&
+              selected.inode_type === "directory" &&
+              item.inode_path.path.startsWith(selected.path + "/"),
+          );
+
+          if (hasSelectedParent) {
+            const parentDir = prev.find(
+              (selected) =>
+                selected.inode_type === "directory" &&
+                item.inode_path.path.startsWith(selected.path + "/"),
+            );
+
+            toast.info("Cannot unselect item", {
+              description: `This ${item.inode_type} is included because its parent directory "${parentDir?.path}" is selected. Unselect the parent directory first.`,
+              duration: 4000,
+            });
+
+            return prev;
+          }
+
+          // Removing an item - this now works for both indexed and user-selected items
+          if (item.inode_type === "directory") {
+            return removeDirectoryAndChildren(item, prev);
+          } else {
+            return removeFileAndCleanupParents(id, prev);
+          }
+        } else {
+          // Adding an item
+          return addItemToSelection(item, prev);
+        }
+      });
+    },
+    [
+      availableItemsMap,
+      removeDirectoryAndChildren,
+      removeFileAndCleanupParents,
+      addItemToSelection,
+    ],
+  );
 
   const handleStartIndexing = () => {
     setIsSelectionMode(true);
@@ -183,23 +213,29 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
   };
 
   // Check if an item is selected
-  const isItemSelected = useCallback((resourceId: string) => {
-    return selectedResources.some(selected => selected.resource_id === resourceId);
-  }, [selectedResources]);
+  const isItemSelected = useCallback(
+    (resourceId: string) => {
+      return selectedResources.some(
+        (selected) => selected.resource_id === resourceId,
+      );
+    },
+    [selectedResources],
+  );
 
   // Get only the resources that should be sent to the backend (parent directories only, not children)
   const getResourcesForBackend = useCallback(() => {
-    return selectedResources.filter(selected => {
+    return selectedResources.filter((selected) => {
       // If it's a file, always include it
       if (selected.inode_type === "file") return true;
-      
+
       // If it's a directory, only include it if it's not a child of another selected directory
-      const isChildOfSelectedDirectory = selectedResources.some(other => 
-        other.resource_id !== selected.resource_id &&
-        other.inode_type === "directory" &&
-        selected.path.startsWith(other.path + "/")
+      const isChildOfSelectedDirectory = selectedResources.some(
+        (other) =>
+          other.resource_id !== selected.resource_id &&
+          other.inode_type === "directory" &&
+          selected.path.startsWith(other.path + "/"),
       );
-      
+
       return !isChildOfSelectedDirectory;
     });
   }, [selectedResources]);

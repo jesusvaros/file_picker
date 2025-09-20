@@ -1,4 +1,3 @@
-
 export type Resource = {
   resource_id: string;
   inode_type: "directory" | "file";
@@ -55,19 +54,21 @@ export class UpstreamError extends Error {
   constructor(
     message: string,
     public status: number,
-    public body?: string
-  ) { super(message); }
+    public body?: string,
+  ) {
+    super(message);
+  }
 }
 
 export async function stackFetch<T = unknown>(
   path: string,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<T> {
   const token = await getAccessToken();
   const BASE = process.env.STACK_AI_BACKEND_URL;
   const url = `${BASE}${path.startsWith("/") ? path : `/${path}`}`;
 
-  const response  = await fetch(url, {
+  const response = await fetch(url, {
     ...init,
     headers: {
       Accept: "application/json",
@@ -82,7 +83,11 @@ export async function stackFetch<T = unknown>(
     let msg = `Upstream ${response.status}`;
     try {
       const json = text ? JSON.parse(text) : undefined;
-      msg = (json?.error as string) || (json?.detail as string) || (json?.message as string) || msg;
+      msg =
+        (json?.error as string) ||
+        (json?.detail as string) ||
+        (json?.message as string) ||
+        msg;
     } catch {}
     throw new UpstreamError(`${msg} @ ${url}`, response.status, text);
   }

@@ -1,5 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { type SortOption } from "@/app/hooks/useSortState";
 
 interface SortButtonProps {
@@ -14,13 +18,13 @@ export function SortButton({
   isSearchActive,
 }: SortButtonProps) {
   return (
-    <div className={`
-      transition-all duration-300 ease-in-out
-      ${isSearchActive 
-        ? 'opacity-0 scale-95 -translate-x-4 pointer-events-none' 
-        : 'opacity-100 scale-100 translate-x-0'
-      }
-    `}>
+    <div
+      className={`transition-all duration-300 ease-in-out ${
+        isSearchActive
+          ? "pointer-events-none -translate-x-4 scale-95 opacity-0"
+          : "translate-x-0 scale-100 opacity-100"
+      } `}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

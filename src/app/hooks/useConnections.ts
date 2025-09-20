@@ -10,10 +10,10 @@ export type StackConnection = {
   org_id: string;
 };
 
-
 export function useConnections(options?: { enabled?: boolean }) {
   const hasStored =
-    typeof window !== "undefined" && Boolean(localStorage.getItem("connectionId"));
+    typeof window !== "undefined" &&
+    Boolean(localStorage.getItem("connectionId"));
   const enabled = (options?.enabled ?? true) && !hasStored;
 
   return useQuery<StackConnection[]>({
@@ -38,13 +38,14 @@ export function useConnections(options?: { enabled?: boolean }) {
   });
 }
 
-
 export function useConnectionId() {
   const storedConnectionId =
     typeof window !== "undefined" ? localStorage.getItem("connectionId") : null;
-    const storedOrgId =
+  const storedOrgId =
     typeof window !== "undefined" ? localStorage.getItem("orgId") : null;
-  const { data, isPending, error } = useConnections({ enabled: !storedConnectionId });
+  const { data, isPending, error } = useConnections({
+    enabled: !storedConnectionId,
+  });
   const connectionId = storedConnectionId ?? data?.[0]?.connection_id ?? null;
   const orgId = storedOrgId ?? data?.[0]?.org_id ?? null;
   return {

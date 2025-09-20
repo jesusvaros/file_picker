@@ -7,13 +7,21 @@ import { queryKeyBase_children } from "./useChildrenSoftDelete";
 import { type SortDirection, type SortKey } from "./useSortState";
 
 function getName(resource: Resource): string {
-  return resource.inode_path?.path?.split("/").filter(Boolean).pop() ?? resource.inode_path?.path ?? "";
+  return (
+    resource.inode_path?.path?.split("/").filter(Boolean).pop() ??
+    resource.inode_path?.path ??
+    ""
+  );
 }
 
-function sortResources(resources: Resource[], sortKey: SortKey, sortDirection: SortDirection): Resource[] {
+function sortResources(
+  resources: Resource[],
+  sortKey: SortKey,
+  sortDirection: SortDirection,
+): Resource[] {
   return [...resources].sort((a, b) => {
     let comparison = 0;
-    
+
     if (sortKey === "name") {
       comparison = collator.compare(getName(a), getName(b));
     } else if (sortKey === "date") {
@@ -22,7 +30,7 @@ function sortResources(resources: Resource[], sortKey: SortKey, sortDirection: S
       const dateB = new Date(b.modified_at || b.created_at || 0).getTime();
       comparison = dateA - dateB;
     }
-    
+
     return sortDirection === "desc" ? -comparison : comparison;
   });
 }
@@ -35,13 +43,13 @@ export function useChildren(params: {
   sortKey?: SortKey;
   sortDirection?: SortDirection;
 }) {
-  const { 
-    connectionId, 
-    currentResourceId, 
-    page, 
+  const {
+    connectionId,
+    currentResourceId,
+    page,
     enabled = true,
     sortKey = "name",
-    sortDirection = "asc"
+    sortDirection = "asc",
   } = params;
 
   const key = [queryKeyBase_children, connectionId, currentResourceId, page];
@@ -54,24 +62,30 @@ export function useChildren(params: {
       if (connectionId) searchParams.set("connectionId", connectionId);
       if (currentResourceId) searchParams.set("resourceId", currentResourceId);
       if (page) searchParams.set("page", page);
-      
-      const response = await fetch(`/api/stackai/children?${searchParams.toString()}`);
+
+      const response = await fetch(
+        `/api/stackai/children?${searchParams.toString()}`,
+      );
       if (!response.ok) throw new Error("Error fetching children");
 
       const data = (await response.json()) as Paginated<Resource>;
       return data;
     },
     select: (data) => {
-      if (typeof window === 'undefined') return data;
-      
+      if (typeof window === "undefined") return data;
+
       try {
-        const hiddenRaw = localStorage.getItem(`connection_hidden_ids:${connectionId}`);
+        const hiddenRaw = localStorage.getItem(
+          `connection_hidden_ids:${connectionId}`,
+        );
         const hiddenIds: string[] = hiddenRaw ? JSON.parse(hiddenRaw) : [];
         const hidden = new Set(hiddenIds);
         //filter out hidden resources
-        const filteredData = data.data.filter((i) => !hidden.has(i.resource_id));
+        const filteredData = data.data.filter(
+          (i) => !hidden.has(i.resource_id),
+        );
         const sortedData = sortResources(filteredData, sortKey, sortDirection);
-        
+
         return {
           ...data,
           data: sortedData,

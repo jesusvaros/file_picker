@@ -19,28 +19,35 @@ export function SearchResults({
         const path = item.inode_path?.path ?? "";
         const name = path.split("/").filter(Boolean).pop() ?? path;
         return (
-          <li key={item.resource_id} className="flex items-center gap-3 p-3 hover:bg-muted/40 rounded-md">
-            <FileIcon 
+          <li
+            key={item.resource_id}
+            className="hover:bg-muted/40 flex items-center gap-3 rounded-md p-3"
+          >
+            <FileIcon
               isDirectory={item.inode_type === "directory"}
-              onDelete={() => softDelete({resourceId: item.resource_id})}
+              onDelete={() => softDelete({ resourceId: item.resource_id })}
             />
             <div className="min-w-0 flex-1">
-              <div className="font-medium text-sm truncate">{name}</div>
-              <div className="text-xs text-muted-foreground truncate">{path}</div>
+              <div className="truncate text-sm font-medium">{name}</div>
+              <div className="text-muted-foreground truncate text-xs">
+                {path}
+              </div>
               {item.modified_at && (
-                <div className="text-xs text-muted-foreground">
+                <div className="text-muted-foreground text-xs">
                   Modified: {format(parseISO(item.modified_at), "PP")}
                 </div>
               )}
             </div>
-            <div className="text-xs text-muted-foreground capitalize">
+            <div className="text-muted-foreground text-xs capitalize">
               {item.inode_type}
             </div>
           </li>
         );
       })}
       {searchResults.length === 0 && searchQuery && (
-        <li className="p-4 opacity-70 text-center">No matches found in loaded items</li>
+        <li className="p-4 text-center opacity-70">
+          No matches found in loaded items
+        </li>
       )}
     </ul>
   );

@@ -5,10 +5,17 @@ import { useMemo } from "react";
 import { type Paginated, type Resource } from "../api/stackai/utils";
 import { queryKeyBase_children } from "./useChildrenSoftDelete";
 
-export const collator = new Intl.Collator(undefined, { sensitivity: "base", numeric: true });
+export const collator = new Intl.Collator(undefined, {
+  sensitivity: "base",
+  numeric: true,
+});
 
 function getName(resource: Resource): string {
-  return resource.inode_path?.path?.split("/").filter(Boolean).pop() ?? resource.inode_path?.path ?? "";
+  return (
+    resource.inode_path?.path?.split("/").filter(Boolean).pop() ??
+    resource.inode_path?.path ??
+    ""
+  );
 }
 
 export function useGlobalLoadedSearch(query: string) {
@@ -16,10 +23,10 @@ export function useGlobalLoadedSearch(query: string) {
 
   return useMemo(() => {
     const searchTerm = query.trim().toLowerCase();
-    
+
     // Get all children queries currently in cache
-    const entries = queryClient.getQueriesData<Paginated<Resource>>({ 
-      queryKey: [queryKeyBase_children] 
+    const entries = queryClient.getQueriesData<Paginated<Resource>>({
+      queryKey: [queryKeyBase_children],
     });
 
     // Flatten all data arrays and dedupe by resource_id
@@ -36,12 +43,12 @@ export function useGlobalLoadedSearch(query: string) {
       });
 
     if (!searchTerm) {
-      return { results: [] , totalSearched: allResources.length };
+      return { results: [], totalSearched: allResources.length };
     }
 
     // Filter by name match
-    const filtered = allResources.filter((resource) => 
-      getName(resource).toLowerCase().includes(searchTerm)
+    const filtered = allResources.filter((resource) =>
+      getName(resource).toLowerCase().includes(searchTerm),
     );
 
     return { results: filtered, totalSearched: allResources.length };

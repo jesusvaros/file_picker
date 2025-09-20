@@ -20,7 +20,7 @@ export function ResourceList({
   orgId,
   onPageChange,
 }: {
-  page: string|null;
+  page: string | null;
   connectionId: string;
   orgId: string;
   onPageChange: (page: string | null) => void;
@@ -28,7 +28,8 @@ export function ResourceList({
   // Search and sort state
   const [searchQuery, setSearchQuery] = useState("");
   const { sortState, currentOption, cycleSortState } = useSortState();
-  const { results: searchResults, totalSearched } = useGlobalLoadedSearch(searchQuery);
+  const { results: searchResults, totalSearched } =
+    useGlobalLoadedSearch(searchQuery);
 
   // Fetch root level data with sort parameters
   const { data, isPending, error } = useChildren({
@@ -40,12 +41,16 @@ export function ResourceList({
 
   const items = data?.data ?? [];
 
-  const { data: childrenKb } = useKbChildren({ page, resourcePath: '/' });
+  const { data: childrenKb } = useKbChildren({ page, resourcePath: "/" });
   const { mutate: softDelete } = useConnectionSoftDelete({
     connectionId,
     page,
   });
-  const { mutate: createKbwithResources, error: indexError, isPending: isCreatingKb } = useCreateKbWithResources();
+  const {
+    mutate: createKbwithResources,
+    error: indexError,
+    isPending: isCreatingKb,
+  } = useCreateKbWithResources();
 
   // Determine which items to show and use for selection
   const isSearchMode = searchQuery.trim().length > 0;
@@ -75,20 +80,23 @@ export function ResourceList({
     });
     handleIndexComplete();
   };
-      
+
   if (isPending)
     return (
-      <div className="h-full flex flex-col">
+      <div className="flex h-full flex-col">
         {/* Header skeleton */}
-        <div className="flex items-center justify-between p-3 mb-4">
+        <div className="mb-4 flex items-center justify-between p-3">
           <Skeleton className="h-4 w-20" />
           <Skeleton className="h-10 w-32 rounded-xl" />
         </div>
-        
+
         {/* Full page skeleton items */}
         <div className="flex-1 space-y-1">
           {Array.from({ length: 15 }).map((_, i) => (
-            <div key={i} className="flex items-center justify-between gap-3 p-3 hover:bg-gray-50">
+            <div
+              key={i}
+              className="flex items-center justify-between gap-3 p-3 hover:bg-gray-50"
+            >
               <div className="flex items-center gap-3">
                 <Skeleton className="size-5 rounded" />
                 <Skeleton className="h-4 w-64" />
@@ -102,7 +110,7 @@ export function ResourceList({
         </div>
       </div>
     );
-  
+
   if (error)
     return (
       <div className="p-4 text-red-600">
@@ -127,7 +135,7 @@ export function ResourceList({
         onSortClick={cycleSortState}
         totalSearched={totalSearched}
       />
-      
+
       {isSearchMode ? (
         <SearchResults
           searchResults={searchResults}
@@ -136,7 +144,7 @@ export function ResourceList({
         />
       ) : (
         <ul>
-          {items.map(item => (
+          {items.map((item) => (
             <ResourceAccordion
               key={item.resource_id}
               item={item}
@@ -149,18 +157,18 @@ export function ResourceList({
               connectionId={connectionId}
               registerItems={registerItems}
               isItemSelected={isItemSelected}
-              parentResourcePath={'/'}
+              parentResourcePath={"/"}
               sortKey={sortState.key}
               sortDirection={sortState.direction}
             />
           ))}
-          
+
           {!items.length && (
             <li className="p-4 opacity-70">No resources found</li>
           )}
         </ul>
       )}
-      
+
       <Pager
         page={page}
         nextPage={data?.next_cursor ?? null}
@@ -170,4 +178,3 @@ export function ResourceList({
     </div>
   );
 }
-

@@ -12,8 +12,13 @@ interface UseResourceSelectionProps {
   childrenKb?: Paginated<Resource>;
 }
 
-export function useResourceSelection({ items, childrenKb }: UseResourceSelectionProps) {
-  const [selectedResources, setSelectedResources] = useState<SelectedResource[]>([]);
+export function useResourceSelection({
+  items,
+  childrenKb,
+}: UseResourceSelectionProps) {
+  const [selectedResources, setSelectedResources] = useState<
+    SelectedResource[]
+  >([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   // Sync selectedIds with childrenKb (already indexed items)
@@ -22,13 +27,15 @@ export function useResourceSelection({ items, childrenKb }: UseResourceSelection
       setSelectedResources([]);
       return;
     }
-    const indexedPaths = new Set(childrenKb?.data?.map((i) => i.inode_path.path));
+    const indexedPaths = new Set(
+      childrenKb?.data?.map((i) => i.inode_path.path),
+    );
     const nextSelected = items
       .filter((it) => indexedPaths.has(it.inode_path.path))
-      .map((it) => ({ 
-        resource_id: it.resource_id, 
-        inode_type: it.inode_type, 
-        path: it.inode_path.path 
+      .map((it) => ({
+        resource_id: it.resource_id,
+        inode_type: it.inode_type,
+        path: it.inode_path.path,
       }));
     setSelectedResources(nextSelected);
   }, [childrenKb?.data, items]);
@@ -45,7 +52,11 @@ export function useResourceSelection({ items, childrenKb }: UseResourceSelection
         // Remove the item and any children if it's a directory
         if (item.inode_type === "directory") {
           // Remove this directory and any items that are children of this directory
-          return prev.filter((x) => x.resource_id !== id && !x.path.startsWith(item.inode_path.path + "/"));
+          return prev.filter(
+            (x) =>
+              x.resource_id !== id &&
+              !x.path.startsWith(item.inode_path.path + "/"),
+          );
         } else {
           // Just remove the file
           return prev.filter((x) => x.resource_id !== id);
@@ -73,9 +84,11 @@ export function useResourceSelection({ items, childrenKb }: UseResourceSelection
     setIsSelectionMode(false);
     // Only remove non-indexed items from selection
     if (childrenKb?.data) {
-      const indexedPaths = new Set(childrenKb.data.map((i) => i.inode_path.path));
-      setSelectedResources(prev => 
-        prev.filter(selected => indexedPaths.has(selected.path))
+      const indexedPaths = new Set(
+        childrenKb.data.map((i) => i.inode_path.path),
+      );
+      setSelectedResources((prev) =>
+        prev.filter((selected) => indexedPaths.has(selected.path)),
       );
     }
   };
@@ -86,11 +99,16 @@ export function useResourceSelection({ items, childrenKb }: UseResourceSelection
   };
 
   // Separate selected and unselected items
-  const selectedItems = items.filter(item => 
-    selectedResources.some(selected => selected.resource_id === item.resource_id)
+  const selectedItems = items.filter((item) =>
+    selectedResources.some(
+      (selected) => selected.resource_id === item.resource_id,
+    ),
   );
-  const unselectedItems = items.filter(item => 
-    !selectedResources.some(selected => selected.resource_id === item.resource_id)
+  const unselectedItems = items.filter(
+    (item) =>
+      !selectedResources.some(
+        (selected) => selected.resource_id === item.resource_id,
+      ),
   );
 
   return {

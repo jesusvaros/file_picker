@@ -23,10 +23,10 @@ export function useKbChildren({
     queryKey: liveKey,
     enabled: Boolean(kbIdCtx) && enabled,
     queryFn: async () => {
-      const sp = new URLSearchParams({ resource_path: resourcePath }); 
+      const sp = new URLSearchParams({ resource_path: resourcePath });
       if (page) sp.set("cursor", page);
       const res = await fetch(`/api/stackai/kb/${kbIdCtx}/children?` + sp);
-      
+
       // Handle path not found errors (500/404)
       if (!res.ok) {
         if (res.status === 500 || res.status === 404) {
@@ -45,13 +45,15 @@ export function useKbChildren({
     staleTime: 30_000,
     retry: (failureCount, error) => {
       // Don't retry on path not found errors (400/404)
-      if (error?.message?.includes('Path error') || 
-          error?.message?.includes('does not exist')) {
+      if (
+        error?.message?.includes("Path error") ||
+        error?.message?.includes("does not exist")
+      ) {
         return false;
       }
       return failureCount < 2;
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), 
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const staging = useQuery<Paginated<Resource>, Error, Paginated<Resource>>({
@@ -65,8 +67,10 @@ export function useKbChildren({
     staleTime: Infinity,
   });
 
-  const stagingQueryData = qc.getQueryData(stagingKey) as Paginated<Resource> | undefined;
+  const stagingQueryData = qc.getQueryData(stagingKey) as
+    | Paginated<Resource>
+    | undefined;
   const hasStagingData = stagingQueryData && stagingQueryData.data.length > 0;
-  
+
   return hasStagingData ? staging : live;
 }

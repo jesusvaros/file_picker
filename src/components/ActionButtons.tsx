@@ -10,18 +10,18 @@ export function ActionButtons({
   isSearchActive,
 }: ActionButtonsProps) {
   return (
-    <div className={`
-      transition-all duration-300 ease-in-out
-      ${isSearchActive 
-        ? 'opacity-0 scale-95 -translate-x-6 pointer-events-none' 
-        : 'opacity-100 scale-100 translate-x-0'
-      }
-    `}>
+    <div
+      className={`transition-all duration-300 ease-in-out ${
+        isSearchActive
+          ? "pointer-events-none -translate-x-6 scale-95 opacity-0"
+          : "translate-x-0 scale-100 opacity-100"
+      } `}
+    >
       <Button
         size="lg"
         variant="default"
         onClick={onStartIndexing}
-        className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-xl cursor-pointer"
+        className="cursor-pointer rounded-xl bg-blue-500 px-4 py-2 hover:bg-blue-600"
       >
         Start Indexing
       </Button>

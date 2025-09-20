@@ -46,72 +46,74 @@ export function ResourceListHeader({
       <div className="p-3">
         {/* Combined Status and Controls Bar */}
         <div className="flex items-center justify-between">
-        {!isSelectionMode ? (
-          <>
-            {/* Left side: Status only */}
-            <div className="text-sm opacity-70">
-              {searchQuery ? (
-                <>
-                  {itemsCount} results {totalSearched && `(searched ${totalSearched} loaded items)`}
-                </>
-              ) : (
-                `${itemsCount} items`
-              )}
-            </div>
-            
-            {/* Right side: Search + Sort + Start Indexing */}
-            <div className="flex items-center gap-2">
-              <SearchControl
-                searchQuery={searchQuery}
-                onSearchChange={onSearchChange}
-                isSearchActive={isSearchActive}
-                onFocusChange={setIsSearchFocused}
-              />
-              
-              <SortButton
-                currentSortOption={currentSortOption}
-                onSortClick={onSortClick}
-                isSearchActive={isSearchActive}
-              />
-              
-              <ActionButtons
-                onStartIndexing={onStartIndexing}
-                isSearchActive={isSearchActive}
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="text-sm opacity-70">
-              Selected: {selectedCount}
-            </div>
-            <div className="flex items-center gap-2">
-              {indexError && (
-                <span className="text-xs text-red-600">
-                  {indexError.message}
-                </span>
-              )}
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={onCancelSelection}
-                className="rounded-xl cursor-pointer"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="default"
-                size="lg"
-                disabled={!selectedCount || isCreatingKb}
-                onClick={onIndexClick}
-                className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-xl cursor-pointer"
-              >
-                Index selected ({selectedCount})
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
+          {!isSelectionMode ? (
+            <>
+              {/* Left side: Status only */}
+              <div className="text-sm opacity-70">
+                {searchQuery ? (
+                  <>
+                    {itemsCount} results{" "}
+                    {totalSearched &&
+                      `(searched ${totalSearched} loaded items)`}
+                  </>
+                ) : (
+                  `${itemsCount} items`
+                )}
+              </div>
+
+              {/* Right side: Search + Sort + Start Indexing */}
+              <div className="flex items-center gap-2">
+                <SearchControl
+                  searchQuery={searchQuery}
+                  onSearchChange={onSearchChange}
+                  isSearchActive={isSearchActive}
+                  onFocusChange={setIsSearchFocused}
+                />
+
+                <SortButton
+                  currentSortOption={currentSortOption}
+                  onSortClick={onSortClick}
+                  isSearchActive={isSearchActive}
+                />
+
+                <ActionButtons
+                  onStartIndexing={onStartIndexing}
+                  isSearchActive={isSearchActive}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-sm opacity-70">
+                Selected: {selectedCount}
+              </div>
+              <div className="flex items-center gap-2">
+                {indexError && (
+                  <span className="text-xs text-red-600">
+                    {indexError.message}
+                  </span>
+                )}
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={onCancelSelection}
+                  className="cursor-pointer rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="default"
+                  size="lg"
+                  disabled={!selectedCount || isCreatingKb}
+                  onClick={onIndexClick}
+                  className="cursor-pointer rounded-xl bg-blue-500 px-4 py-2 hover:bg-blue-600"
+                >
+                  Index selected ({selectedCount})
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </TooltipProvider>
   );

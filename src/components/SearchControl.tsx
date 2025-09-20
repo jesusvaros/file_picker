@@ -48,23 +48,19 @@ export function SearchControl({
 
   return (
     <div className="relative">
-      <div 
-        className={`
-          relative overflow-hidden border rounded-md transition-all duration-300 ease-in-out
-          ${showSearchInput || searchQuery 
-            ? 'w-64 bg-background' 
-            : 'w-8 bg-background hover:bg-accent'
-          }
-          h-8 flex items-center
-        `}
+      <div
+        className={`relative overflow-hidden rounded-md border transition-all duration-300 ease-in-out ${
+          showSearchInput || searchQuery
+            ? "bg-background w-64"
+            : "bg-background hover:bg-accent w-8"
+        } flex h-8 items-center`}
       >
         {/* Search Icon - always visible */}
-        <div 
-          className={`
-            absolute left-2 top-1/2 -translate-y-1/2 transition-all duration-300
-            ${showSearchInput || searchQuery ? 'opacity-50' : 'opacity-100 cursor-pointer'}
-          `}
-          onClick={!showSearchInput && !searchQuery ? handleSearchClick : undefined}
+        <div
+          className={`absolute top-1/2 left-2 -translate-y-1/2 transition-all duration-300 ${showSearchInput || searchQuery ? "opacity-50" : "cursor-pointer opacity-100"} `}
+          onClick={
+            !showSearchInput && !searchQuery ? handleSearchClick : undefined
+          }
         >
           <Search className="h-4 w-4" />
         </div>
@@ -74,20 +70,19 @@ export function SearchControl({
           ref={inputRef}
           placeholder="Search files and folders..."
           value={searchQuery}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            onSearchChange(e.target.value)
+          }
           onFocus={() => onFocusChange?.(true)}
           onBlur={() => {
             onFocusChange?.(false);
             handleSearchBlur();
           }}
-          className={`
-            absolute inset-0 pl-8 pr-8 border-0 bg-transparent transition-all duration-300
-            flex items-center h-full
-            ${showSearchInput || searchQuery 
-              ? 'opacity-100 pointer-events-auto' 
-              : 'opacity-0 pointer-events-none'
-            }
-          `}
+          className={`absolute inset-0 flex h-full items-center border-0 bg-transparent pr-8 pl-8 transition-all duration-300 ${
+            showSearchInput || searchQuery
+              ? "pointer-events-auto opacity-100"
+              : "pointer-events-none opacity-0"
+          } `}
         />
 
         {/* Clear Button - appears when there's content */}
@@ -96,11 +91,7 @@ export function SearchControl({
             variant="ghost"
             size="sm"
             onClick={handleClearSearch}
-            className={`
-              absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 
-              hover:bg-gray-100 rounded-full transition-all duration-200
-              ${searchQuery ? 'opacity-100' : 'opacity-50'}
-            `}
+            className={`absolute top-1/2 right-1 h-6 w-6 -translate-y-1/2 rounded-full p-0 transition-all duration-200 hover:bg-gray-100 ${searchQuery ? "opacity-100" : "opacity-50"} `}
             title={searchQuery ? "Clear search and close" : "Close search"}
           >
             <X className="h-3 w-3" />

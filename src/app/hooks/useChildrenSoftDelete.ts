@@ -3,7 +3,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Paginated, Resource } from "../api/stackai/utils";
 
-const hiddenKey = (connectionId: string) => `connection_hidden_ids:${connectionId}`;
+const hiddenKey = (connectionId: string) =>
+  `connection_hidden_ids:${connectionId}`;
 
 export const queryKeyBase_children = "connection-children";
 
@@ -25,7 +26,7 @@ function saveHiddenSet(connectionId: string, set: Set<string>) {
 
 export function useConnectionSoftDelete({
   connectionId,
-  page,                 
+  page,
 }: {
   connectionId: string;
   page?: string | null;
@@ -33,19 +34,34 @@ export function useConnectionSoftDelete({
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ resourceId, parentResourceId }: { resourceId: string; parentResourceId?: string }) => {
+    mutationFn: async ({
+      resourceId,
+      parentResourceId,
+    }: {
+      resourceId: string;
+      parentResourceId?: string;
+    }) => {
       return { resourceId, parentResourceId };
     },
 
-    onMutate: async ({ resourceId, parentResourceId }: { resourceId: string; parentResourceId?: string }) => {
+    onMutate: async ({
+      resourceId,
+      parentResourceId,
+    }: {
+      resourceId: string;
+      parentResourceId?: string;
+    }) => {
       const key = [queryKeyBase_children, connectionId, parentResourceId, page];
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueryData<Paginated<Resource>>(key);
 
       qc.setQueryData<Paginated<Resource>>(key, (old) =>
         old
-          ? { ...old, data: old.data.filter((i) => i.resource_id !== resourceId) }
-          : old
+          ? {
+              ...old,
+              data: old.data.filter((i) => i.resource_id !== resourceId),
+            }
+          : old,
       );
 
       const hidden = loadHiddenSet(connectionId);
@@ -61,14 +77,19 @@ export function useConnectionSoftDelete({
     },
 
     onError: (_err, _vars, ctx) => {
-      const key = [queryKeyBase_children, connectionId, ctx?.parentResourceId, page];
+      const key = [
+        queryKeyBase_children,
+        connectionId,
+        ctx?.parentResourceId,
+        page,
+      ];
       if (ctx?.prev) qc.setQueryData(key, ctx.prev);
       if (ctx?.resourceId) {
         const hidden = loadHiddenSet(connectionId);
         hidden.delete(ctx.resourceId);
         saveHiddenSet(connectionId, hidden);
       }
-      
+
       toast.error("Failed to delete resource", {
         description: "Something went wrong. Please try again.",
         duration: 4000,

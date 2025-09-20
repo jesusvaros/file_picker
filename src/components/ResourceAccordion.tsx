@@ -3,7 +3,12 @@ import { useChildren } from "@/app/hooks/useChildren";
 import { useKbChildren } from "@/app/hooks/useKbChildren";
 import { useKbDeleteResource } from "@/app/hooks/useKbDeleteResource";
 import { type SortDirection, type SortKey } from "@/app/hooks/useSortState";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
@@ -18,9 +23,19 @@ export interface ResourceAccordionProps {
   isSelected: boolean;
   childrenKb?: Paginated<Resource>;
   onToggleSelected: (id: string) => void;
-  onSoftDelete: ({resourceId, parentResourceId}: {resourceId: string, parentResourceId?: string}) => void;
+  onSoftDelete: ({
+    resourceId,
+    parentResourceId,
+  }: {
+    resourceId: string;
+    parentResourceId?: string;
+  }) => void;
   level?: number;
-  selectedResources?: Array<{ resource_id: string; inode_type: string; path: string }>;
+  selectedResources?: Array<{
+    resource_id: string;
+    inode_type: string;
+    path: string;
+  }>;
   connectionId?: string;
   registerItems?: (items: Resource[]) => void;
   isItemSelected?: (id: string) => boolean;
@@ -29,8 +44,6 @@ export interface ResourceAccordionProps {
   sortKey?: SortKey;
   sortDirection?: SortDirection;
 }
-
-
 
 export function ResourceAccordion({
   item,
@@ -53,12 +66,16 @@ export function ResourceAccordion({
 
   // Only fetch children when it's a directory (accordion will handle lazy loading)
   const shouldFetchChildren = inode_type === "directory";
-  const { mutate: deleteResource } = useKbDeleteResource({ page: null, resource_path: inode_path.path, parentResourcePath: parentResourcePath ?? "" });
-  
-  const { 
-    data: directoryChildren, 
+  const { mutate: deleteResource } = useKbDeleteResource({
+    page: null,
+    resource_path: inode_path.path,
+    parentResourcePath: parentResourcePath ?? "",
+  });
+
+  const {
+    data: directoryChildren,
     isPending: isLoadingChildren,
-    error: childrenError 
+    error: childrenError,
   } = useChildren({
     connectionId: connectionId,
     currentResourceId: resource_id,
@@ -68,7 +85,11 @@ export function ResourceAccordion({
     sortDirection,
   });
 
-  const { data: directoryChildrenKb } = useKbChildren({ page: null, resourcePath: inode_path.path, enabled: shouldFetchChildren });
+  const { data: directoryChildrenKb } = useKbChildren({
+    page: null,
+    resourcePath: inode_path.path,
+    enabled: shouldFetchChildren,
+  });
 
   // Register items when they load
   useEffect(() => {
@@ -79,7 +100,12 @@ export function ResourceAccordion({
 
   // Auto-select newly loaded children if parent is selected
   useEffect(() => {
-    if (directoryChildren?.data && isSelected && inode_type === "directory" && isItemSelected) {
+    if (
+      directoryChildren?.data &&
+      isSelected &&
+      inode_type === "directory" &&
+      isItemSelected
+    ) {
       // Use setTimeout to avoid state update conflicts
       setTimeout(() => {
         directoryChildren.data.forEach((child) => {
@@ -90,12 +116,20 @@ export function ResourceAccordion({
         });
       }, 0);
     }
-  }, [directoryChildren?.data, isSelected, inode_type, isItemSelected, onToggleSelected]);
+  }, [
+    directoryChildren?.data,
+    isSelected,
+    inode_type,
+    isItemSelected,
+    onToggleSelected,
+  ]);
 
   // For files, just render the ResourceItem with same indentation as directories
   if (inode_type === "file") {
     return (
-      <div className={`${level > 0 ? 'ml-4 border-l border-gray-200 pl-4' : ''}`}>
+      <div
+        className={`${level > 0 ? "ml-4 border-l border-gray-200 pl-4" : ""}`}
+      >
         <ResourceItem
           item={item}
           showCheckbox={showCheckbox}
@@ -112,10 +146,10 @@ export function ResourceAccordion({
 
   // For directories, render as accordion
   return (
-    <div className={`${level > 0 ? 'ml-4 border-l border-gray-200 pl-4' : ''}`}>
+    <div className={`${level > 0 ? "ml-4 border-l border-gray-200 pl-4" : ""}`}>
       <Accordion type="single" collapsible>
         <AccordionItem value={resource_id} className="border-none">
-          <div className="flex items-center w-full hover:bg-muted/40">
+          <div className="hover:bg-muted/40 flex w-full items-center">
             <div className="flex items-center gap-2 p-3">
               {showCheckbox && (
                 <Checkbox
@@ -126,31 +160,33 @@ export function ResourceAccordion({
                   onClick={(e) => e.stopPropagation()}
                 />
               )}
-              <FileIcon 
+              <FileIcon
                 isDirectory={true}
                 onDelete={() => {
-                  onSoftDelete({resourceId: resource_id, parentResourceId });
+                  onSoftDelete({ resourceId: resource_id, parentResourceId });
                 }}
               />
             </div>
-            
-            <AccordionTrigger className="flex-1 justify-between p-3 pl-0 hover:no-underline w-full ">
-              <div className="flex items-center w-full  gap-2">
-                  <span className="font-medium text-base">{inode_path.path}</span>
-                  
-                  {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) && (
-                    <IndexedBadge onDelete={deleteResource} isDirectory={true} />
-                  )}
-                  
-                  {item.modified_at && (
-                    <span className="text-xs opacity-60">
-                      {format(parseISO(item.modified_at), "PP")}
-                    </span>
-                  )}
+
+            <AccordionTrigger className="w-full flex-1 justify-between p-3 pl-0 hover:no-underline">
+              <div className="flex w-full items-center gap-2">
+                <span className="text-base font-medium">{inode_path.path}</span>
+
+                {childrenKb?.data.some(
+                  (i) => i.inode_path.path === inode_path.path,
+                ) && (
+                  <IndexedBadge onDelete={deleteResource} isDirectory={true} />
+                )}
+
+                {item.modified_at && (
+                  <span className="text-xs opacity-60">
+                    {format(parseISO(item.modified_at), "PP")}
+                  </span>
+                )}
               </div>
             </AccordionTrigger>
           </div>
-          
+
           <AccordionContent>
             {isLoadingChildren && shouldFetchChildren && (
               <div className="ml-4 space-y-2">
@@ -162,13 +198,13 @@ export function ResourceAccordion({
                 ))}
               </div>
             )}
-            
+
             {childrenError && (
-              <div className="ml-4 p-2 text-red-600 text-sm">
+              <div className="ml-4 p-2 text-sm text-red-600">
                 Error loading directory contents
               </div>
             )}
-            
+
             {directoryChildren?.data && directoryChildren.data.length > 0 && (
               <div className="space-y-1">
                 {directoryChildren.data.map((childItem: Resource) => (
@@ -176,7 +212,14 @@ export function ResourceAccordion({
                     key={childItem.resource_id}
                     item={childItem}
                     showCheckbox={showCheckbox}
-                    isSelected={isItemSelected ? isItemSelected(childItem.resource_id) : selectedResources.some(selected => selected.resource_id === childItem.resource_id)}
+                    isSelected={
+                      isItemSelected
+                        ? isItemSelected(childItem.resource_id)
+                        : selectedResources.some(
+                            (selected) =>
+                              selected.resource_id === childItem.resource_id,
+                          )
+                    }
                     childrenKb={directoryChildrenKb}
                     onToggleSelected={onToggleSelected}
                     onSoftDelete={onSoftDelete}
@@ -193,9 +236,9 @@ export function ResourceAccordion({
                 ))}
               </div>
             )}
-            
+
             {directoryChildren?.data && directoryChildren.data.length === 0 && (
-              <div className="ml-4 p-2 text-gray-500 text-sm">
+              <div className="ml-4 p-2 text-sm text-gray-500">
                 Empty directory
               </div>
             )}

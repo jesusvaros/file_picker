@@ -4,15 +4,13 @@ import { FileIcon } from "./FileIcon";
 import { IndexedBadge } from "./IndexedBadge";
 import { ResourceAccordionProps } from "./ResourceAccordion";
 
-
 const isDirectory = (inode_type: "directory" | "file") => {
   return inode_type === "directory";
 };
 
 type ItemsProps = ResourceAccordionProps & {
   onDeleteResource: () => void;
-}
-
+};
 
 export function ResourceItem({
   item,
@@ -22,10 +20,12 @@ export function ResourceItem({
   onToggleSelected,
   onDeleteResource,
   onSoftDelete,
-  parentResourceId
+  parentResourceId,
 }: ItemsProps) {
   const { resource_id, inode_type, inode_path } = item;
-  const isIndexed = childrenKb?.data.some((i) => i.inode_path.path === inode_path.path);
+  const isIndexed = childrenKb?.data.some(
+    (i) => i.inode_path.path === inode_path.path,
+  );
 
   return (
     <li
@@ -41,28 +41,34 @@ export function ResourceItem({
             onClick={(e) => e.stopPropagation()}
           />
         )}
-        <FileIcon 
+        <FileIcon
           isDirectory={isDirectory(inode_type)}
-          onDelete={() => onSoftDelete({resourceId: resource_id, parentResourceId})}
+          onDelete={() =>
+            onSoftDelete({ resourceId: resource_id, parentResourceId })
+          }
         />
-        <span className="font-medium text-base">{inode_path.path}</span>
-        
+        <span className="text-base font-medium">{inode_path.path}</span>
+
         {isIndexed && (
           <>
             <IndexedBadge onDelete={onDeleteResource} />
             {(() => {
-              const kbItem = childrenKb?.data.find((i) => i.inode_path.path === inode_path.path);
-              return kbItem?.modified_at && (
-                <span className="text-xs opacity-60">
-                  {format(parseISO(kbItem.modified_at), "PP")}
-                </span>
+              const kbItem = childrenKb?.data.find(
+                (i) => i.inode_path.path === inode_path.path,
+              );
+              return (
+                kbItem?.modified_at && (
+                  <span className="text-xs opacity-60">
+                    {format(parseISO(kbItem.modified_at), "PP")}
+                  </span>
+                )
               );
             })()}
           </>
         )}
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-xs opacity-60 capitalize">{inode_type}</span>
+        <span className="text-xs capitalize opacity-60">{inode_type}</span>
       </div>
     </li>
   );

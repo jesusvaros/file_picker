@@ -27,10 +27,10 @@ export function Pager({
             size="sm"
             onClick={onReset}
             disabled={!page}
-          title="Reset page"
-        >
-          ⏮️ page 1
-        </Button>
+            title="Reset page"
+          >
+            ⏮️ page 1
+          </Button>
         )}
         <Button
           variant="default"
