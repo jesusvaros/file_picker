@@ -1,5 +1,6 @@
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { Paginated, Resource } from "../api/stackai/utils";
 import { useAppContext } from "../providers";
 
@@ -30,22 +31,49 @@ export function useKbDeleteResource({
   const parentPaths = generateParentPaths(parentResourcePath);
   const kbChildrenKeys = parentPaths.map(path => ["kb-children", kbId, path, page]);
 
+  const toastId = `kb-children-delete[${resource_path}]`;
+
   
   return useMutation({
     mutationFn: async () => {
       if (!kbId) {
-        throw new Error("Missing knowledge base id");
+        toast.error("Missing knowledge base id", {
+          description: "Please try again",
+          duration: 3000,
+          id: toastId,
+        });
+        return;
       }
+
+      toast.loading("Deleting resource", {
+        description: "This may take a few minutes",
+        duration: 3000,
+        id: toastId,
+      });
+
       const searchParams = new URLSearchParams({ resource_path: resource_path });
       const response = await fetch(
         `/api/stackai/kb/${kbId}/resources?${searchParams.toString()}`,
         { method: "DELETE" }
       );
-      if (!response.ok) throw new Error("Delete failed");
+      if (!response.ok) {
+        toast.error("Delete failed", {
+          description: "Please try again",
+          duration: 3000,
+          id: toastId,
+        });
+        return;
+      }
       
       // Refetch all parent paths using ES6 forEach
       kbChildrenKeys.forEach(key => {
         queryClient.refetchQueries({ queryKey: key });
+      });
+      
+      toast.success("Deleted successfully", {
+        description: "The item has been removed from your view",
+        duration: 3000,
+        id: toastId,
       });
       
       return resource_path;
@@ -75,6 +103,12 @@ export function useKbDeleteResource({
       if (context?.prevKbChildren) {
         queryClient.setQueryData(context.kbChildrenKey, context.prevKbChildren);
       }
+
+      toast.error("Delete failed", {
+        description: "Please try again",
+        duration: 3000,
+        id: toastId,
+      });
     },
   });
 }

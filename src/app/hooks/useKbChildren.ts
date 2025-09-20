@@ -30,7 +30,6 @@ export function useKbChildren({
       // Handle path not found errors (500/404)
       if (!res.ok) {
         if (res.status === 500 || res.status === 404) {
-          console.warn(`Path '${resourcePath}' not found in KB, returning empty result`);
           return {
             data: [],
             next_cursor: null,
@@ -39,7 +38,7 @@ export function useKbChildren({
         }
         throw new Error("Failed to load KB files");
       }
-      
+      // remove staging data
       qc.removeQueries({ queryKey: stagingKey });
       return res.json();
     },

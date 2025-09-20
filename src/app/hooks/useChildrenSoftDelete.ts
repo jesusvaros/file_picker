@@ -1,5 +1,6 @@
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { Paginated, Resource } from "../api/stackai/utils";
 
 const hiddenKey = (connectionId: string) => `connection_hidden_ids:${connectionId}`;
@@ -37,7 +38,6 @@ export function useConnectionSoftDelete({
     },
 
     onMutate: async ({ resourceId, parentResourceId }: { resourceId: string; parentResourceId?: string }) => {
-      console.log( 'useConnectionSoftDelete onMutate', { resourceId, parentResourceId ,page, connectionId} );
       const key = [queryKeyBase_children, connectionId, parentResourceId, page];
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueryData<Paginated<Resource>>(key);
@@ -52,6 +52,11 @@ export function useConnectionSoftDelete({
       hidden.add(resourceId);
       saveHiddenSet(connectionId, hidden);
 
+      toast.success("Deleted successfully", {
+        description: "The item has been removed from your view",
+        duration: 3000,
+      });
+
       return { prev, resourceId, parentResourceId };
     },
 
@@ -63,6 +68,11 @@ export function useConnectionSoftDelete({
         hidden.delete(ctx.resourceId);
         saveHiddenSet(connectionId, hidden);
       }
+      
+      toast.error("Failed to delete resource", {
+        description: "Something went wrong. Please try again.",
+        duration: 4000,
+      });
     },
   });
 }

@@ -1,6 +1,7 @@
 "use client";
 import { useAppContext } from "@/app/providers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { Paginated } from "../api/stackai/utils";
 
 type IndexingParams = { ocr: boolean; unstructured: boolean };
@@ -30,6 +31,8 @@ export function useCreateKbWithResources() {
   const { setKbId } = useAppContext();
   const qc = useQueryClient();
 
+  const toastId = 'kb-children:staging';
+
   return useMutation<CreateKbResponse, Error, CreateKbVars, { stagingKey: (string | null)[] }>({
     onMutate: ({ selectionResources }: CreateKbVars) => {
       const stagingKey: (string | null)[] = ["kb-children:staging"];
@@ -47,6 +50,12 @@ export function useCreateKbWithResources() {
         [...prev, ...pending].forEach((it) => m.set(it.resource_id, it as StagingResource));
         const next = { data: [...m.values()], next_cursor: old?.next_cursor ?? null, current_cursor: old?.current_cursor ?? null } as Paginated<StagingResource>;
         return next;
+      });
+
+      toast.loading("Indexing resources", {
+        description: "This may take a few minutes",
+        duration: 3000,
+        id: toastId,
       });
 
       return { stagingKey: stagingKey };
@@ -77,14 +86,14 @@ export function useCreateKbWithResources() {
       });
       if (!createRes.ok) {
         const txt = await createRes.text().catch(() => "");
-        throw new Error(`KB creation failed (${createRes.status}) ${txt}`);
+        toast.error(`KB creation failed (${createRes.status}) ${txt}`, { id: toastId });
       }
       const kb: CreateKbResponse = await createRes.json();
 
       const syncRes = await fetch(`/api/stackai/kb/sync/trigger/${kb.knowledge_base_id}/${orgId}`);
       if (!syncRes.ok) {
         const txt = await syncRes.text().catch(() => "");
-        throw new Error(`KB sync trigger failed (${syncRes.status}) ${txt}`);
+        toast.error(`KB sync trigger failed (${syncRes.status}) ${txt}`, { id: toastId });
       }
 
       return kb;
@@ -92,10 +101,16 @@ export function useCreateKbWithResources() {
 
     onSuccess: async (kb) => {
       setKbId(kb.knowledge_base_id)
+      toast.success("KB created successfully", {
+        description: "The knowledge base has been created",
+        duration: 3000,
+        id: toastId,
+      });
     },
 
     onError: (_e, _vars, ctx) => {
       if (ctx?.stagingKey) qc.removeQueries({ queryKey: ctx.stagingKey, exact: true });
+      toast.error("KB creation failed", { id: toastId });
     },
   });
 }
