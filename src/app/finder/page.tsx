@@ -1,21 +1,14 @@
 "use client";
 
 import { MacWindow } from "@/components/MacWindow";
-import { Pager } from "@/components/Pager";
 import { ResourceList } from "@/components/ResourceList";
 import { useState } from "react";
-import { useChildren } from "../hooks/useChildren";
 import { useConnectionId } from "../hooks/useConnections";
 
 export default function Page() {
   const { connectionId, orgId, isPending: loadingConn, error: connError } = useConnectionId();
 
   const [page, setPage] = useState<string | null>(null);
-
-  const { data, isPending, error, isFetching } = useChildren({
-    connectionId: connectionId ?? undefined,
-    page,
-  });
 
   return (
     <main 
@@ -24,7 +17,7 @@ export default function Page() {
         backgroundImage: "url('https://upload.wikimedia.org/wikipedia/en/2/27/Bliss_%28Windows_XP%29.png')"
       }}
     >
-      <MacWindow fetching={isFetching}>
+      <MacWindow>
         <div className="p-6 pt-2 space-y-4">
 
           {!connectionId && loadingConn && (
@@ -43,22 +36,12 @@ export default function Page() {
           )}
 
           {connectionId && orgId && (
-            <>
-              <ResourceList
-                items={data?.data ?? []}
-                isPending={isPending || isFetching}
-                error={error}
-                page={page}
-                connectionId={connectionId}
-                orgId={orgId}
-              />
-              <Pager
-                page={page}
-                nextPage={data?.next_cursor ?? null}
-                onReset={() => setPage(null)}
-                onNext={(c) => setPage(c)}
-              />
-            </>
+            <ResourceList
+              page={page}
+              connectionId={connectionId}
+              orgId={orgId}
+              onPageChange={setPage}
+            />
           )}
         </div>
       </MacWindow>

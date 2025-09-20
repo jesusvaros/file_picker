@@ -71,7 +71,7 @@ export function useKbDeleteResource({
       });
       
       toast.success("Deleted successfully", {
-        description: "The item has been removed from your view",
+        description: "The item has been removed from your knowledge base",
         duration: 3000,
         id: toastId,
       });

@@ -2,10 +2,9 @@ import { toast } from "sonner";
 
 interface MacWindowProps {
   children: React.ReactNode;
-  fetching?: boolean;
 }
 
-export function MacWindow({ children, fetching = false }: MacWindowProps) {
+export function MacWindow({ children }: MacWindowProps) {
   return (
     <div className="w-full max-w-6xl bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-300">
       {/* Window Title Bar */}
@@ -43,11 +42,6 @@ export function MacWindow({ children, fetching = false }: MacWindowProps) {
         
         {/* Window Title - Empty for clean look */}
         <div className="flex-1"></div>
-        
-        {/* Header Status */}
-        <div className="text-xs opacity-60 text-gray-700">
-          {fetching ? "Refreshing…" : "Ready"}
-        </div>
       </div>
 
       {/* Window Content */}

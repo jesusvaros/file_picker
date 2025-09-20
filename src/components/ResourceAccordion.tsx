@@ -2,9 +2,11 @@ import { type Paginated, type Resource } from "@/app/api/stackai/utils";
 import { useChildren } from "@/app/hooks/useChildren";
 import { useKbChildren } from "@/app/hooks/useKbChildren";
 import { useKbDeleteResource } from "@/app/hooks/useKbDeleteResource";
+import { type SortDirection, type SortKey } from "@/app/hooks/useSortState";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format, parseISO } from "date-fns";
 import { useEffect } from "react";
 import { FileIcon } from "./FileIcon";
 import { IndexedBadge } from "./IndexedBadge";
@@ -24,6 +26,8 @@ export interface ResourceAccordionProps {
   isItemSelected?: (id: string) => boolean;
   parentResourceId?: string;
   parentResourcePath?: string;
+  sortKey?: SortKey;
+  sortDirection?: SortDirection;
 }
 
 
@@ -42,6 +46,8 @@ export function ResourceAccordion({
   isItemSelected,
   parentResourceId,
   parentResourcePath,
+  sortKey = "name",
+  sortDirection = "asc",
 }: ResourceAccordionProps) {
   const { resource_id, inode_type, inode_path } = item;
 
@@ -58,6 +64,8 @@ export function ResourceAccordion({
     currentResourceId: resource_id,
     page: null,
     enabled: shouldFetchChildren, // Only fetch when we actually need it
+    sortKey,
+    sortDirection,
   });
 
   const { data: directoryChildrenKb } = useKbChildren({ page: null, resourcePath: inode_path.path, enabled: shouldFetchChildren });
@@ -127,12 +135,18 @@ export function ResourceAccordion({
             </div>
             
             <AccordionTrigger className="flex-1 justify-between p-3 pl-0 hover:no-underline w-full ">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-base">{inode_path.path}</span>
-                
-                {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) && (
-                  <IndexedBadge onDelete={deleteResource} isDirectory={true} />
-                )}
+              <div className="flex items-center w-full  gap-2">
+                  <span className="font-medium text-base">{inode_path.path}</span>
+                  
+                  {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) && (
+                    <IndexedBadge onDelete={deleteResource} isDirectory={true} />
+                  )}
+                  
+                  {item.modified_at && (
+                    <span className="text-xs opacity-60">
+                      {format(parseISO(item.modified_at), "PP")}
+                    </span>
+                  )}
               </div>
             </AccordionTrigger>
           </div>
@@ -173,6 +187,8 @@ export function ResourceAccordion({
                     isItemSelected={isItemSelected}
                     parentResourceId={item.resource_id}
                     parentResourcePath={item.inode_path.path}
+                    sortKey={sortKey}
+                    sortDirection={sortDirection}
                   />
                 ))}
               </div>

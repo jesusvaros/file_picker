@@ -1,0 +1,49 @@
+"use client";
+
+import { useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { type Paginated, type Resource } from "../api/stackai/utils";
+import { queryKeyBase_children } from "./useChildrenSoftDelete";
+
+export const collator = new Intl.Collator(undefined, { sensitivity: "base", numeric: true });
+
+function getName(resource: Resource): string {
+  return resource.inode_path?.path?.split("/").filter(Boolean).pop() ?? resource.inode_path?.path ?? "";
+}
+
+export function useGlobalLoadedSearch(query: string) {
+  const queryClient = useQueryClient();
+
+  return useMemo(() => {
+    const searchTerm = query.trim().toLowerCase();
+    
+    // Get all children queries currently in cache
+    const entries = queryClient.getQueriesData<Paginated<Resource>>({ 
+      queryKey: [queryKeyBase_children] 
+    });
+
+    // Flatten all data arrays and dedupe by resource_id
+    const seen = new Set<string>();
+    const allResources: Resource[] = entries
+      .map(([, data]) => data?.data ?? [])
+      .flat()
+      .filter((resource) => {
+        if (seen.has(resource.resource_id)) {
+          return false;
+        }
+        seen.add(resource.resource_id);
+        return true;
+      });
+
+    if (!searchTerm) {
+      return { results: [] , totalSearched: allResources.length };
+    }
+
+    // Filter by name match
+    const filtered = allResources.filter((resource) => 
+      getName(resource).toLowerCase().includes(searchTerm)
+    );
+
+    return { results: filtered, totalSearched: allResources.length };
+  }, [queryClient, query]);
+}

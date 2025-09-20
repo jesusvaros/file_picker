@@ -61,7 +61,9 @@ export function ResourceItem({
           </>
         )}
       </div>
-      <span className="text-xs opacity-60">File</span>
+      <div className="flex items-center gap-2">
+        <span className="text-xs opacity-60 capitalize">{inode_type}</span>
+      </div>
     </li>
   );
 }
