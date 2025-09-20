@@ -108,7 +108,6 @@ export function ResourceAccordion({
       <Accordion type="single" collapsible>
         <AccordionItem value={resource_id} className="border-none">
           <div className="flex items-center w-full hover:bg-muted/40">
-            {/* Directory item with checkbox and icon */}
             <div className="flex items-center gap-2 p-3">
               {showCheckbox && (
                 <Checkbox
@@ -125,16 +124,17 @@ export function ResourceAccordion({
                   onSoftDelete({resourceId: resource_id, parentResourceId });
                 }}
               />
-              <span className="font-medium text-base">{inode_path.path}</span>
-              
-              {/* Show indexed badge if applicable */}
-              {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) && (
-                <IndexedBadge onDelete={deleteResource} isDirectory={true} />
-              )}
             </div>
             
-            {/* Accordion trigger button */}
-            <AccordionTrigger className="flex-shrink-0 p-3 hover:no-underline [&[data-state=open]>svg]:rotate-180" />
+            <AccordionTrigger className="flex-1 justify-between p-3 pl-0 hover:no-underline w-full ">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-base">{inode_path.path}</span>
+                
+                {childrenKb?.data.some((i) => i.inode_path.path === inode_path.path) && (
+                  <IndexedBadge onDelete={deleteResource} isDirectory={true} />
+                )}
+              </div>
+            </AccordionTrigger>
           </div>
           
           <AccordionContent>

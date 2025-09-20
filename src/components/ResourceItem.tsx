@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format, parseISO } from "date-fns";
 import { FileIcon } from "./FileIcon";
@@ -31,7 +30,7 @@ export function ResourceItem({
   return (
     <li
       key={resource_id}
-      className={`hover:bg-muted/40 ${isDirectory(inode_type) ? "cursor-pointer" : ""} flex items-center justify-between p-3`}
+      className={`hover:bg-muted/40 flex items-center justify-between p-3`}
     >
       <div className="flex items-center gap-2">
         {showCheckbox && (
@@ -62,19 +61,7 @@ export function ResourceItem({
           </>
         )}
       </div>
-      <div className="flex items-center gap-2">
-        {isDirectory(inode_type) ? (
-          <Button
-            variant="link"
-            size="sm"
-            className="px-0 text-blue-600 cursor-pointer"
-          >
-            Open
-          </Button>
-        ) : (
-          <span className="text-xs opacity-60">File</span>
-        )}
-      </div>
+      <span className="text-xs opacity-60">File</span>
     </li>
   );
 }

@@ -1,6 +1,6 @@
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { File, Folder, X } from "lucide-react";
 import { useState } from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface FileIconProps {
   isDirectory: boolean;
@@ -60,9 +60,9 @@ export function FileIcon({ isDirectory, onDelete, size = 20 }: FileIconProps) {
                   onDelete();
                 }}
               >
-                <X size={10} />
+                <X size={10} className="cursor-pointer" />
               </button>
-            </TooltipTrigger>
+            </TooltipTrigger >
             <TooltipContent>
               <p>Delete {isDirectory ? 'folder' : 'file'}</p>
             </TooltipContent>
