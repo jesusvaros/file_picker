@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import type { Resource, Paginated } from "@/app/api/stackai/utils";
+import type { Paginated, Resource } from "@/app/api/stackai/utils";
+import { useEffect, useState } from "react";
 
 interface SelectedResource {
   resource_id: string;
@@ -36,11 +36,10 @@ export function useResourceSelection({ items, childrenKb }: UseResourceSelection
   const toggleSelected = (id: string, allItems?: Resource[]) => {
     setSelectedResources((prev) => {
       const exists = prev.some((x) => x.resource_id === id);
-      
       // Find the item in the provided items array or fallback to main items
       const searchItems = allItems || items;
       const item = searchItems.find((it) => it.resource_id === id);
-      if (!item) return prev; // safety: if item not found, don't add incomplete entry
+      if (!item) return prev;
 
       if (exists) {
         // Remove the item and any children if it's a directory

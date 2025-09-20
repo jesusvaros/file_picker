@@ -1,5 +1,6 @@
-import { useState, useCallback, useMemo } from "react";
-import type { Resource, Paginated } from "@/app/api/stackai/utils";
+import type { Paginated, Resource } from "@/app/api/stackai/utils";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 interface SelectedResource {
   resource_id: string;
@@ -13,11 +14,12 @@ interface UseNestedResourceSelectionProps {
 }
 
 export function useNestedResourceSelection({ items, childrenKb }: UseNestedResourceSelectionProps) {
-  const [userSelectedResources, setUserSelectedResources] = useState<SelectedResource[]>([]);
+  const [selectedResources, setSelectedResources] = useState<SelectedResource[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [allAvailableItems, setAllAvailableItems] = useState<Map<string, Resource>>(new Map());
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-  // Calculate indexed resources (already indexed items from KB) - no useEffect needed
+  // Calculate indexed resources (already indexed items from KB) - these are the default selections
   const indexedResources = useMemo(() => {
     if (!childrenKb?.data || !items?.length) {
       return [];
@@ -32,19 +34,8 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
       }));
   }, [childrenKb?.data, items]);
 
-  // Combine indexed and user-selected resources
-  const selectedResources = useMemo(() => {
-    const combined = [...indexedResources, ...userSelectedResources];
-    // Deduplicate by resource_id
-    const seen = new Set<string>();
-    return combined.filter(item => {
-      if (seen.has(item.resource_id)) return false;
-      seen.add(item.resource_id);
-      return true;
-    });
-  }, [indexedResources, userSelectedResources]);
 
-  // Create available items map from current items - no useEffect needed
+  // Create available items map from current items
   const availableItemsMap = useMemo(() => {
     const map = new Map(allAvailableItems);
     items.forEach(item => {
@@ -127,7 +118,7 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
   }, [availableItemsMap]);
 
   const toggleSelected = useCallback((id: string) => {
-    setUserSelectedResources((prev) => {
+    setSelectedResources((prev) => {
       // Find the item in our registry
       const item = availableItemsMap.get(id);
       if (!item) return prev; // safety: if item not found, don't add incomplete entry
@@ -135,7 +126,28 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
       const exists = prev.some((x) => x.resource_id === id);
       
       if (exists) {
-        // Removing an item
+        // Check if user is trying to unselect an item whose parent directory is selected
+        const hasSelectedParent = prev.some((selected) => 
+          selected.resource_id !== id &&
+          selected.inode_type === "directory" &&
+          item.inode_path.path.startsWith(selected.path + "/")
+        );
+
+        if (hasSelectedParent) {
+          const parentDir = prev.find((selected) => 
+            selected.inode_type === "directory" &&
+            item.inode_path.path.startsWith(selected.path + "/")
+          );
+          
+          toast.info("Cannot unselect item", {
+            description: `This ${item.inode_type} is included because its parent directory "${parentDir?.path}" is selected. Unselect the parent directory first.`,
+            duration: 4000,
+          });
+          
+          return prev;
+        }
+
+        // Removing an item - this now works for both indexed and user-selected items
         if (item.inode_type === "directory") {
           return removeDirectoryAndChildren(item, prev);
         } else {
@@ -150,17 +162,24 @@ export function useNestedResourceSelection({ items, childrenKb }: UseNestedResou
 
   const handleStartIndexing = () => {
     setIsSelectionMode(true);
+    // Initialize with indexed items as default selections
+    if (!hasInitialized) {
+      setSelectedResources(indexedResources);
+      setHasInitialized(true);
+    }
   };
 
   const handleCancelSelection = () => {
     setIsSelectionMode(false);
-    // Clear user selections (indexed items will remain via indexedResources)
-    setUserSelectedResources([]);
+    // Reset to only indexed items (revert any changes)
+    setSelectedResources(indexedResources);
+    setHasInitialized(false);
   };
 
   const handleIndexComplete = () => {
     setIsSelectionMode(false);
-    setUserSelectedResources([]);
+    setSelectedResources([]);
+    setHasInitialized(false);
   };
 
   // Check if an item is selected
