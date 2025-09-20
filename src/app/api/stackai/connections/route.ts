@@ -1,12 +1,5 @@
 import { NextResponse } from "next/server";
-import { stackFetch } from "../utils";
-
-export interface StackConnection {
-  connection_id: string;
-  name: string;
-  created_at: string;
-  updated_at: string;
-}
+import { stackFetch, type StackConnection } from "../utils";
 
 export async function GET() {
   const data = await stackFetch<StackConnection[]>(

@@ -1,10 +1,28 @@
 export type Resource = {
   resource_id: string;
   inode_type: "directory" | "file";
-  inode_path: { path: string };
+  inode_path: {
+    path: string;
+  };
   created_at?: string;
   modified_at?: string;
 };
+
+export type StackConnection = {
+  connection_id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  org_id: string;
+};
+
+export function getResourceName(resource: Resource): string {
+  return (
+    resource.inode_path?.path?.split("/").filter(Boolean).pop() ??
+    resource.inode_path?.path ??
+    ""
+  );
+}
 
 export type Paginated<T> = {
   data: T[];

@@ -1,22 +1,14 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { type Paginated, type Resource } from "../api/stackai/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { type Paginated, type Resource, getResourceName } from "../api/stackai/utils";
 import { queryKeyBase_children } from "./useChildrenSoftDelete";
 
 export const collator = new Intl.Collator(undefined, {
   sensitivity: "base",
   numeric: true,
 });
-
-function getName(resource: Resource): string {
-  return (
-    resource.inode_path?.path?.split("/").filter(Boolean).pop() ??
-    resource.inode_path?.path ??
-    ""
-  );
-}
 
 export function useGlobalLoadedSearch(query: string) {
   const queryClient = useQueryClient();
@@ -48,7 +40,7 @@ export function useGlobalLoadedSearch(query: string) {
 
     // Filter by name match
     const filtered = allResources.filter((resource) =>
-      getName(resource).toLowerCase().includes(searchTerm),
+      getResourceName(resource).toLowerCase().includes(searchTerm),
     );
 
     return { results: filtered, totalSearched: allResources.length };

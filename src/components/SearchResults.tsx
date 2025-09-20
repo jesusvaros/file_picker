@@ -1,6 +1,7 @@
-import { type Resource } from "@/app/api/stackai/utils";
-import { format, parseISO } from "date-fns";
+import type { Resource } from "@/app/api/stackai/utils";
+import { getResourceName } from "@/app/api/stackai/utils";
 import { FileIcon } from "./FileIcon";
+import { format, parseISO } from "date-fns";
 
 interface SearchResultsProps {
   searchResults: Resource[];
@@ -17,7 +18,7 @@ export function SearchResults({
     <ul className="space-y-1">
       {searchResults.map((item: Resource) => {
         const path = item.inode_path?.path ?? "";
-        const name = path.split("/").filter(Boolean).pop() ?? path;
+        const name = getResourceName(item);
         return (
           <li
             key={item.resource_id}

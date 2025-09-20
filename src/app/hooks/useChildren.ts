@@ -1,18 +1,11 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Paginated, Resource } from "../api/stackai/utils";
+import type { Paginated, Resource } from "../api/stackai/utils";
+import { getResourceName } from "../api/stackai/utils";
 import { collator } from "../hooks/useGlobalLoadedSearch";
 import { queryKeyBase_children } from "./useChildrenSoftDelete";
 import { type SortDirection, type SortKey } from "./useSortState";
-
-function getName(resource: Resource): string {
-  return (
-    resource.inode_path?.path?.split("/").filter(Boolean).pop() ??
-    resource.inode_path?.path ??
-    ""
-  );
-}
 
 function sortResources(
   resources: Resource[],
@@ -23,7 +16,7 @@ function sortResources(
     let comparison = 0;
 
     if (sortKey === "name") {
-      comparison = collator.compare(getName(a), getName(b));
+      comparison = collator.compare(getResourceName(a), getResourceName(b));
     } else if (sortKey === "date") {
       // Use modified_at first, then created_at as fallback
       const dateA = new Date(a.modified_at || a.created_at || 0).getTime();

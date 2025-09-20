@@ -1,14 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-
-export type StackConnection = {
-  connection_id: string;
-  name: string;
-  created_at: string;
-  updated_at: string;
-  org_id: string;
-};
+import type { StackConnection } from "../api/stackai/utils";
 
 export function useConnections(options?: { enabled?: boolean }) {
   const hasStored =
