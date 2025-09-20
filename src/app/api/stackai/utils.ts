@@ -30,6 +30,35 @@ export function getResourceName(resource: Resource): string {
   );
 }
 
+
+// Generates the localStorage key for hidden resources by connection
+export function getHiddenResourcesKey(connectionId: string): string {
+  return `connection_hidden_ids:${connectionId}`;
+}
+
+// Loads hidden resource IDs from localStorage
+export function loadHiddenResourceIds(connectionId: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(getHiddenResourcesKey(connectionId));
+    const arr: string[] = raw ? JSON.parse(raw) : [];
+    return new Set(arr);
+  } catch {
+    return new Set<string>();
+  }
+}
+
+// Saves hidden resource IDs to localStorage
+export function saveHiddenResourceIds(connectionId: string, hiddenIds: Set<string>): void {
+  try {
+    localStorage.setItem(
+      getHiddenResourcesKey(connectionId), 
+      JSON.stringify([...hiddenIds])
+    );
+  } catch {
+    // Silently fail if localStorage is not available
+  }
+}
+
 export type Paginated<T> = {
   data: T[];
   next_cursor?: string | null;

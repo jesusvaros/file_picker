@@ -2,7 +2,7 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { Paginated, Resource } from "../api/stackai/utils";
-import { getResourceName } from "../api/stackai/utils";
+import { getResourceName, loadHiddenResourceIds } from "../api/stackai/utils";
 import { collator } from "../hooks/useGlobalLoadedSearch";
 import { queryKeyBase_children } from "./useChildrenSoftDelete";
 import { type SortDirection, type SortKey } from "./useSortState";
@@ -68,11 +68,7 @@ export function useChildren(params: {
       if (typeof window === "undefined") return data;
 
       try {
-        const hiddenRaw = localStorage.getItem(
-          `connection_hidden_ids:${connectionId}`,
-        );
-        const hiddenIds: string[] = hiddenRaw ? JSON.parse(hiddenRaw) : [];
-        const hidden = new Set(hiddenIds);
+        const hidden = connectionId ? loadHiddenResourceIds(connectionId) : new Set<string>();
         //filter out hidden resources
         const filteredData = data.data.filter(
           (i) => !hidden.has(i.resource_id),

@@ -2,27 +2,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Paginated, Resource } from "../api/stackai/utils";
-
-const hiddenKey = (connectionId: string) =>
-  `connection_hidden_ids:${connectionId}`;
+import { loadHiddenResourceIds, saveHiddenResourceIds } from "../api/stackai/utils";
 
 export const queryKeyBase_children = "connection-children";
-
-function loadHiddenSet(connectionId: string) {
-  try {
-    const raw = localStorage.getItem(hiddenKey(connectionId));
-    const arr: string[] = raw ? JSON.parse(raw) : [];
-    return new Set(arr);
-  } catch {
-    return new Set<string>();
-  }
-}
-
-function saveHiddenSet(connectionId: string, set: Set<string>) {
-  try {
-    localStorage.setItem(hiddenKey(connectionId), JSON.stringify([...set]));
-  } catch {}
-}
 
 export function useConnectionSoftDelete({
   connectionId,
@@ -64,9 +46,9 @@ export function useConnectionSoftDelete({
           : old,
       );
 
-      const hidden = loadHiddenSet(connectionId);
+      const hidden = loadHiddenResourceIds(connectionId);
       hidden.add(resourceId);
-      saveHiddenSet(connectionId, hidden);
+      saveHiddenResourceIds(connectionId, hidden);
 
       toast.success("Deleted successfully", {
         description: "The item has been removed from your view",
@@ -85,9 +67,9 @@ export function useConnectionSoftDelete({
       ];
       if (ctx?.prev) qc.setQueryData(key, ctx.prev);
       if (ctx?.resourceId) {
-        const hidden = loadHiddenSet(connectionId);
+        const hidden = loadHiddenResourceIds(connectionId);
         hidden.delete(ctx.resourceId);
-        saveHiddenSet(connectionId, hidden);
+        saveHiddenResourceIds(connectionId, hidden);
       }
 
       toast.error("Failed to delete resource", {
