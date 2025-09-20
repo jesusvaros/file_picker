@@ -1,4 +1,4 @@
-import { type Paginated, type Resource } from "@/app/api/stackai/utils";
+import { type Paginated, type Resource, type SelectedResource } from "@/app/api/stackai/utils";
 import { useChildren } from "@/app/hooks/useChildren";
 import { useKbChildren } from "@/app/hooks/useKbChildren";
 import { useKbDeleteResource } from "@/app/hooks/useKbDeleteResource";
@@ -31,11 +31,7 @@ export interface ResourceAccordionProps {
     parentResourceId?: string;
   }) => void;
   level?: number;
-  selectedResources?: Array<{
-    resource_id: string;
-    inode_type: string;
-    path: string;
-  }>;
+  selectedResources?: SelectedResource[];
   connectionId?: string;
   registerItems?: (items: Resource[]) => void;
   isItemSelected?: (id: string) => boolean;

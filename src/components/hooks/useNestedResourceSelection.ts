@@ -1,12 +1,6 @@
-import type { Paginated, Resource } from "@/app/api/stackai/utils";
+import type { Paginated, Resource, SelectedResource } from "@/app/api/stackai/utils";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-
-interface SelectedResource {
-  resource_id: string;
-  inode_type: string;
-  path: string;
-}
 
 interface UseNestedResourceSelectionProps {
   items: Resource[];

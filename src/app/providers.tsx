@@ -2,6 +2,7 @@
 
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Analytics } from "@vercel/analytics/next";
 import {
   createContext,
   useCallback,
@@ -50,6 +51,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={client}>
+      <Analytics />
       <AppContext.Provider value={{ kbId, setKbId }}>
         {children}
       </AppContext.Provider>

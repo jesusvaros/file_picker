@@ -16,6 +16,12 @@ export type StackConnection = {
   org_id: string;
 };
 
+export type SelectedResource = {
+  resource_id: string;
+  inode_type: string;
+  path: string;
+};
+
 export function getResourceName(resource: Resource): string {
   return (
     resource.inode_path?.path?.split("/").filter(Boolean).pop() ??

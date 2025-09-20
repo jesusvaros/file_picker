@@ -1,20 +1,14 @@
 "use client";
-import { useAppContext } from "@/app/providers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { Paginated } from "../api/stackai/utils";
+import { useAppContext } from "../providers";
+import type { Paginated, SelectedResource } from "../api/stackai/utils";
 
 type IndexingParams = { ocr: boolean; unstructured: boolean };
 
 type CreateKbResponse = {
   knowledge_base_id: string;
   created_at?: string;
-};
-
-type SelectedResource = {
-  resource_id: string;
-  inode_type: string;
-  path: string;
 };
 
 type CreateKbVars = {
