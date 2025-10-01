@@ -3,20 +3,21 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 
 interface UseDeDupSelectionProps {
-  availableItemsMap: Map<string, Resource>;
+  getAvailableItemsMap: () => Map<string, Resource>;
   selectedResources: SelectedResource[];
   setSelectedResources: (updater: (prev: SelectedResource[]) => SelectedResource[]) => void;
 }
 
 export function useDeDupSelection({
-  availableItemsMap,
+  getAvailableItemsMap,
   selectedResources,
   setSelectedResources,
 }: UseDeDupSelectionProps) {
   const toggleSelected = useCallback(
     (id: string) => {
       setSelectedResources((prev) => {
-        const item = availableItemsMap.get(id);
+        const map = getAvailableItemsMap();
+        const item = map.get(id);
         if (!item) {
           toast.error("Unable to locate resource for selection");
           return prev;
@@ -34,7 +35,7 @@ export function useDeDupSelection({
           : [...prev, newItem];
       });
     },
-    [availableItemsMap, setSelectedResources],
+    [getAvailableItemsMap, setSelectedResources],
   );
 
   const getResourcesForBackend = useCallback(() => {

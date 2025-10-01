@@ -14,7 +14,7 @@ export function useResourceSelection({
   items,
   childrenKb,
 }: UseResourceSelectionProps) {
-  const { indexedResources, availableItemsMap, registerItems } = useSelectionEffects({
+  const { indexedResources, getAvailableItemsMap, registerItems } = useSelectionEffects({
     items,
     childrenKb,
   });
@@ -30,7 +30,7 @@ export function useResourceSelection({
   } = useSelectionState({ indexedResources });
 
   const { toggleSelected, getResourcesForBackend } = useDeDupSelection({
-    availableItemsMap,
+    getAvailableItemsMap,
     selectedResources,
     setSelectedResources,
   });

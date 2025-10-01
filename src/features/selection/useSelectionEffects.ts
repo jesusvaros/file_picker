@@ -29,7 +29,7 @@ export function useSelectionEffects({
   }, [childrenKb?.data, items]);
 
   // Create available items map from current items
-  const availableItemsMap = useMemo(() => {
+  const getAvailableItemsMap = useCallback(() => {
     const map = new Map(allAvailableItemsRef.current);
     items.forEach((item) => {
       map.set(item.resource_id, item);
@@ -49,7 +49,7 @@ export function useSelectionEffects({
 
   return {
     indexedResources,
-    availableItemsMap,
+    getAvailableItemsMap,
     registerItems,
   };
 }
