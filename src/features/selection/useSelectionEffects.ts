@@ -1,6 +1,6 @@
 import type { Paginated } from "@/domain/pagination";
 import type { Resource, SelectedResource } from "@/domain/resource";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 interface UseSelectionEffectsProps {
   items: Resource[];
@@ -11,9 +11,7 @@ export function useSelectionEffects({
   items,
   childrenKb,
 }: UseSelectionEffectsProps) {
-  const [allAvailableItems, setAllAvailableItems] = useState<
-    Map<string, Resource>
-  >(new Map());
+  const allAvailableItemsRef = useRef<Map<string, Resource>>(new Map());
 
   // Calculate indexed resources (already indexed items from KB) - these are the default selections
   const indexedResources = useMemo<SelectedResource[]>(() => {
@@ -32,22 +30,21 @@ export function useSelectionEffects({
 
   // Create available items map from current items
   const availableItemsMap = useMemo(() => {
-    const map = new Map(allAvailableItems);
+    const map = new Map(allAvailableItemsRef.current);
     items.forEach((item) => {
       map.set(item.resource_id, item);
     });
+    allAvailableItemsRef.current = map;
     return map;
-  }, [items, allAvailableItems]);
+  }, [items]);
 
   // Register items as they become available (from accordion expansions)
   const registerItems = useCallback((newItems: Resource[]) => {
-    setAllAvailableItems((prev) => {
-      const updated = new Map(prev);
-      newItems.forEach((item) => {
-        updated.set(item.resource_id, item);
-      });
-      return updated;
+    const updated = new Map(allAvailableItemsRef.current);
+    newItems.forEach((item) => {
+      updated.set(item.resource_id, item);
     });
+    allAvailableItemsRef.current = updated;
   }, []);
 
   return {
