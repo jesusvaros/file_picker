@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useConnectionId } from "@/hooks/useConnections";
 
 export default function Home() {
-  const { connectionId, isPending, error } = useConnectionId();
+  const { connectionId, orgId, isPending, error } = useConnectionId();
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-6">
@@ -67,7 +67,13 @@ export default function Home() {
         {!isPending && !error && connectionId && (
           <div className="group animate-slide-in relative">
             <Link
-              href="/explorer"
+              href={{
+                pathname: "/explorer",
+                query: {
+                  connectionId: connectionId ?? undefined,
+                  orgId: orgId ?? undefined,
+                },
+              }}
               className="hover:shadow-3xl relative inline-flex transform items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-blue-600 px-12 py-6 text-2xl font-bold text-white shadow-2xl transition-all duration-300 group-hover:animate-pulse hover:scale-110"
             >
               {/* Animated background */}
