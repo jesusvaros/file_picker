@@ -10,7 +10,7 @@ const isDirectory = (inode_type: "directory" | "file") => {
 };
 
 type ItemsProps = ResourceAccordionProps & {
-  onDeleteResource: () => void;
+  onDeleteResource?: () => void;
 };
 
 export function ResourceItem({
@@ -19,9 +19,9 @@ export function ResourceItem({
   isSelected,
   childrenKb,
   onToggleSelected,
-  onDeleteResource,
   onSoftDelete,
   parentResourceId,
+  onDeleteResource,
 }: ItemsProps) {
   const { resource_id, inode_type, inode_path } = item;
   

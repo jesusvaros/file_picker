@@ -56,7 +56,7 @@ export function ResourceAccordion({
   registerItems,
   isItemSelected,
   parentResourceId,
-  parentResourcePath,
+  parentResourcePath = "/",
   sortKey = "name",
   sortDirection = "asc",
 }: ResourceAccordionProps) {
@@ -80,7 +80,7 @@ export function ResourceAccordion({
   const { mutate: deleteResource } = useKnowledgeBaseDelete({
     page: null,
     resourcePath: inode_path.path,
-    parentResourcePath: parentResourcePath ?? "",
+    parentResourcePath,
   });
 
   const {
@@ -177,9 +177,9 @@ export function ResourceAccordion({
           isSelected={isSelected}
           childrenKb={childrenKb}
           onToggleSelected={onToggleSelected}
-          onDeleteResource={deleteResource}
           onSoftDelete={onSoftDelete}
           parentResourceId={parentResourceId}
+          onDeleteResource={deleteResource}
         />
       </div>
     );
@@ -221,9 +221,7 @@ export function ResourceAccordion({
               <div className="flex w-full items-center gap-2">
                 <span className="text-base font-medium">{inode_path.path}</span>
 
-                {isIndexed && (
-                  <IndexedBadge onDelete={deleteResource} isDirectory={true} />
-                )}
+                {isIndexed && <IndexedBadge onDelete={deleteResource} />}
 
                 {kbItem?.modified_at && (
                   <span className="text-xs opacity-60">

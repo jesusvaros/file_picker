@@ -1,5 +1,5 @@
 interface IndexedBadgeProps {
-  onDelete: () => void;
+  onDelete?: () => void;
   isDirectory?: boolean;
 }
 
@@ -11,7 +11,7 @@ export function IndexedBadge({
     <div className="group relative inline-flex h-6 items-center overflow-hidden">
       <div
         onClick={(e) => {
-          if (isDirectory) return;
+          if (isDirectory || !onDelete) return;
           e.stopPropagation();
           onDelete();
         }}
