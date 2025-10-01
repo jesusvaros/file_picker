@@ -1,24 +1,24 @@
-import type { Paginated, Resource } from "@/app/api/stackai/utils";
-import { useSelectionState } from "./useSelectionState";
+import type { Paginated } from "@/domain/pagination";
+import type { Resource } from "@/domain/resource";
+
 import { useDeDupSelection } from "./useDeDupSelection";
 import { useSelectionEffects } from "./useSelectionEffects";
+import { useSelectionState } from "./useSelectionState";
 
-interface UseNestedResourceSelectionProps {
+interface UseResourceSelectionProps {
   items: Resource[];
   childrenKb?: Paginated<Resource>;
 }
 
-export function useNestedResourceSelection({
+export function useResourceSelection({
   items,
   childrenKb,
-}: UseNestedResourceSelectionProps) {
-  // Handle side effects and data processing
+}: UseResourceSelectionProps) {
   const { indexedResources, availableItemsMap, registerItems } = useSelectionEffects({
     items,
     childrenKb,
   });
 
-  // Handle selection state and mode management
   const {
     selectedResources,
     setSelectedResources,
@@ -29,7 +29,6 @@ export function useNestedResourceSelection({
     isItemSelected,
   } = useSelectionState({ indexedResources });
 
-  // Handle deduplication and complex selection logic
   const { toggleSelected, getResourcesForBackend } = useDeDupSelection({
     availableItemsMap,
     selectedResources,

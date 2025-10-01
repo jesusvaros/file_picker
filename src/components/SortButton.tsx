@@ -4,7 +4,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { type SortOption } from "@/app/hooks/useSortState";
+import { type SortOption } from "@/hooks/useSortState";
 
 interface SortButtonProps {
   currentSortOption: SortOption;

@@ -2,15 +2,14 @@
 
 import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { type Paginated, type Resource, getResourceName } from "../api/stackai/utils";
-import { queryKeyBase_children } from "./useChildrenSoftDelete";
 
-export const collator = new Intl.Collator(undefined, {
-  sensitivity: "base",
-  numeric: true,
-});
+import type { Paginated } from "@/domain/pagination";
+import type { Resource } from "@/domain/resource";
+import { getResourceName } from "@/lib/resource-path";
 
-export function useGlobalLoadedSearch(query: string) {
+import { queryKeyBaseChildren } from "./useConnectionSoftDelete";
+
+export function useExplorerSearch(query: string) {
   const queryClient = useQueryClient();
 
   return useMemo(() => {
@@ -18,7 +17,7 @@ export function useGlobalLoadedSearch(query: string) {
 
     // Get all children queries currently in cache
     const entries = queryClient.getQueriesData<Paginated<Resource>>({
-      queryKey: [queryKeyBase_children],
+      queryKey: [queryKeyBaseChildren],
     });
 
     // Flatten all data arrays and dedupe by resource_id
@@ -40,7 +39,9 @@ export function useGlobalLoadedSearch(query: string) {
 
     // Filter by name match
     const filtered = allResources.filter((resource) =>
-      getResourceName(resource).toLowerCase().includes(searchTerm),
+      getResourceName(resource)
+        .toLowerCase()
+        .includes(searchTerm),
     );
 
     return { results: filtered, totalSearched: allResources.length };

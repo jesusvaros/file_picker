@@ -1,11 +1,9 @@
-import { stackFetch } from "@/app/api/stackai/utils";
 import { NextRequest, NextResponse } from "next/server";
 
-export type kbPostResourceType = {
-  resource_path: string; // ej: "My Drive/Papers" o "My Drive/Folder/Doc.pdf"
-  resource_type: "file" | "directory"; // viene de inode_type del children
-  recursive?: boolean; // solo útil si es directory
-};
+import {
+  addKnowledgeBaseResource,
+  deleteKnowledgeBaseResource,
+} from "@/services/stack/resources";
 
 type ContextProps = { params: Promise<{ kbId: string }> };
 
@@ -17,10 +15,7 @@ export async function DELETE(req: NextRequest, context: ContextProps) {
     return NextResponse.json({ error: "Missing params" }, { status: 400 });
   }
 
-  await stackFetch(
-    `/knowledge_bases/${kbId}/resources?resource_path=${encodeURIComponent(resourcePath)}`,
-    { method: "DELETE" },
-  );
+  await deleteKnowledgeBaseResource(kbId, resourcePath);
 
   return NextResponse.json({ status: "removed" });
 }
@@ -46,10 +41,7 @@ export async function POST(
     );
   }
 
-  await stackFetch(`/knowledge_bases/${kbId}/resources`, {
-    method: "POST",
-    body: form,
-  });
+  await addKnowledgeBaseResource(kbId, form);
 
   return NextResponse.json({ status: "added" });
 }

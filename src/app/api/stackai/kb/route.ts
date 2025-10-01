@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stackFetch } from "../utils";
+
+import {
+  createKnowledgeBase,
+  fetchKnowledgeBases,
+} from "@/services/stack/knowledge-base";
 
 export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const searchParams = url.searchParams.toString();
-  const path = `/knowledge_bases${searchParams ? `?${searchParams}` : ""}`;
-
-  const data = await stackFetch(path, { method: "GET" });
+  const searchParams = req.nextUrl.searchParams;
+  const data = await fetchKnowledgeBases(searchParams);
   return NextResponse.json(data);
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const data: Response = await stackFetch("/knowledge_bases", {
-    method: "POST",
-    body: JSON.stringify(body),
-    headers: { "Content-Type": "application/json" },
-  });
-  return NextResponse.json(data, { status: data.status });
+  const body = (await req.json()) as Parameters<
+    typeof createKnowledgeBase
+  >[0];
+  const created = await createKnowledgeBase(body);
+  return NextResponse.json(created, { status: 201 });
 }

@@ -1,5 +1,6 @@
-import { stackFetch } from "@/app/api/stackai/utils";
 import { NextRequest, NextResponse } from "next/server";
+
+import { fetchKnowledgeBaseChildren } from "@/services/stack/resources";
 
 export async function GET(
   req: NextRequest,
@@ -17,12 +18,10 @@ export async function GET(
     );
   }
 
-  const qs = new URLSearchParams({ resource_path: resource_path ?? "/" });
-  if (cursor) qs.set("cursor", cursor);
+  const data = await fetchKnowledgeBaseChildren(kbId, {
+    resourcePath: resource_path,
+    cursor,
+  });
 
-  const res: Response = await stackFetch(
-    `/knowledge_bases/${kbId}/resources/children?${qs}`,
-  );
-
-  return NextResponse.json(res, { status: res.status });
+  return NextResponse.json(data);
 }

@@ -1,10 +1,8 @@
-import { stackFetch } from "@/app/api/stackai/utils";
 import { NextResponse } from "next/server";
 
+import { fetchCurrentOrganization } from "@/services/stack/org";
+
 export async function GET() {
-  const res: Response = await stackFetch("/organizations/me/current", {
-    method: "GET",
-  });
-  const json = await res.json();
-  return NextResponse.json(json, { status: res.status });
+  const organization = await fetchCurrentOrganization();
+  return NextResponse.json(organization);
 }

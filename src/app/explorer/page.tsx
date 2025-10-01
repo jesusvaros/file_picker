@@ -1,11 +1,13 @@
 "use client";
 
 import { MacWindow } from "@/components/MacWindow";
-import { ResourceList } from "@/components/ResourceList";
-import { useState } from "react";
-import { useConnectionId } from "../hooks/useConnections";
+import { ErrorBoundary, ErrorFallback } from "@/components/feedback/ErrorBoundary";
+import { SuspenseFallback } from "@/components/feedback/SuspenseFallback";
+import { ExplorerView } from "@/features/explorer/ExplorerView";
+import { useConnectionId } from "@/hooks/useConnections";
+import { Suspense, useState } from "react";
 
-export default function Page() {
+export default function ExplorerPage() {
   const {
     connectionId,
     orgId,
@@ -43,12 +45,16 @@ export default function Page() {
           )}
 
           {connectionId && orgId && (
-            <ResourceList
-              page={page}
-              connectionId={connectionId}
-              orgId={orgId}
-              onPageChange={setPage}
-            />
+            <ErrorBoundary fallback={<ErrorFallback />}>
+              <Suspense fallback={<SuspenseFallback />}>
+                <ExplorerView
+                  page={page}
+                  connectionId={connectionId}
+                  orgId={orgId}
+                  onPageChange={setPage}
+                />
+              </Suspense>
+            </ErrorBoundary>
           )}
         </div>
       </MacWindow>

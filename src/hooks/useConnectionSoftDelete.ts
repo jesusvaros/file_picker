@@ -1,10 +1,13 @@
 "use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { Paginated, Resource } from "../api/stackai/utils";
-import { loadHiddenResourceIds, saveHiddenResourceIds } from "../api/stackai/utils";
 
-export const queryKeyBase_children = "connection-children";
+import type { Paginated } from "@/domain/pagination";
+import type { Resource } from "@/domain/resource";
+import { useHiddenResources } from "@/hooks/useHiddenResources";
+
+export const queryKeyBaseChildren = "connection-children";
 
 export function useConnectionSoftDelete({
   connectionId,
@@ -14,6 +17,7 @@ export function useConnectionSoftDelete({
   page?: string | null;
 }) {
   const qc = useQueryClient();
+  const { updateHiddenSet } = useHiddenResources(connectionId);
 
   return useMutation({
     mutationFn: async ({
@@ -22,9 +26,7 @@ export function useConnectionSoftDelete({
     }: {
       resourceId: string;
       parentResourceId?: string;
-    }) => {
-      return { resourceId, parentResourceId };
-    },
+    }) => ({ resourceId, parentResourceId }),
 
     onMutate: async ({
       resourceId,
@@ -33,7 +35,7 @@ export function useConnectionSoftDelete({
       resourceId: string;
       parentResourceId?: string;
     }) => {
-      const key = [queryKeyBase_children, connectionId, parentResourceId, page];
+      const key = [queryKeyBaseChildren, connectionId, parentResourceId, page];
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueryData<Paginated<Resource>>(key);
 
@@ -46,9 +48,10 @@ export function useConnectionSoftDelete({
           : old,
       );
 
-      const hidden = loadHiddenResourceIds(connectionId);
-      hidden.add(resourceId);
-      saveHiddenResourceIds(connectionId, hidden);
+      updateHiddenSet((prev) => {
+        prev.add(resourceId);
+        return prev;
+      });
 
       toast.success("Deleted successfully", {
         description: "The item has been removed from your view",
@@ -60,16 +63,17 @@ export function useConnectionSoftDelete({
 
     onError: (_err, _vars, ctx) => {
       const key = [
-        queryKeyBase_children,
+        queryKeyBaseChildren,
         connectionId,
         ctx?.parentResourceId,
         page,
       ];
       if (ctx?.prev) qc.setQueryData(key, ctx.prev);
       if (ctx?.resourceId) {
-        const hidden = loadHiddenResourceIds(connectionId);
-        hidden.delete(ctx.resourceId);
-        saveHiddenResourceIds(connectionId, hidden);
+        updateHiddenSet((prev) => {
+          prev.delete(ctx.resourceId as string);
+          return prev;
+        });
       }
 
       toast.error("Failed to delete resource", {

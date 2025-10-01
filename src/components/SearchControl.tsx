@@ -19,6 +19,12 @@ export function SearchControl({
   const [showSearchInput, setShowSearchInput] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
+  React.useEffect(() => {
+    if (isSearchActive) {
+      setShowSearchInput(true);
+    }
+  }, [isSearchActive]);
+
   // Handle search button click
   const handleSearchClick = () => {
     setShowSearchInput(true);

@@ -1,41 +1,40 @@
 "use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useAppContext } from "../providers";
-import type { Paginated, SelectedResource } from "../api/stackai/utils";
 
-type IndexingParams = { ocr: boolean; unstructured: boolean };
+import type { Paginated } from "@/domain/pagination";
+import type {
+  CreateKnowledgeBaseResponse,
+  IndexingParams,
+} from "@/domain/knowledge-base";
+import type { SelectedResource } from "@/domain/resource";
+import { useAppContext } from "@/app/providers";
 
-type CreateKbResponse = {
-  knowledge_base_id: string;
-  created_at?: string;
-};
-
-type CreateKbVars = {
+export type CreateKnowledgeBaseVars = {
   connectionId: string;
   selectionResources: SelectedResource[];
   indexingParams?: IndexingParams;
   orgId: string;
 };
 
-// Local staging type to allow an extra transient status flag in cache
-type StagingResource = import("../api/stackai/utils").Resource & {
+type StagingResource = import("@/domain/resource").Resource & {
   status?: "pending";
 };
 
-export function useCreateKbWithResources() {
+export function useKbMutations() {
   const { setKbId } = useAppContext();
   const qc = useQueryClient();
 
   const toastId = "kb-children:staging";
 
-  return useMutation<
-    CreateKbResponse,
+  const create = useMutation<
+    CreateKnowledgeBaseResponse,
     Error,
-    CreateKbVars,
+    CreateKnowledgeBaseVars,
     { stagingKey: (string | null)[] }
   >({
-    onMutate: ({ selectionResources }: CreateKbVars) => {
+    onMutate: ({ selectionResources }: CreateKnowledgeBaseVars) => {
       const stagingKey: (string | null)[] = ["kb-children:staging"];
 
       const pending = selectionResources.map((i) => ({
@@ -73,7 +72,7 @@ export function useCreateKbWithResources() {
       selectionResources,
       indexingParams,
       orgId,
-    }: CreateKbVars): Promise<CreateKbResponse> => {
+    }: CreateKnowledgeBaseVars): Promise<CreateKnowledgeBaseResponse> => {
       if (!connectionId) throw new Error("Missing connectionId");
       if (!orgId) throw new Error("Missing orgId");
       if (!selectionResources?.length) throw new Error("No resources selected");
@@ -99,7 +98,7 @@ export function useCreateKbWithResources() {
           id: toastId,
         });
       }
-      const kb: CreateKbResponse = await createRes.json();
+      const kb: CreateKnowledgeBaseResponse = await createRes.json();
 
       const syncRes = await fetch(
         `/api/stackai/kb/sync/trigger/${kb.knowledge_base_id}/${orgId}`,
@@ -129,4 +128,8 @@ export function useCreateKbWithResources() {
       toast.error("KB creation failed", { id: toastId });
     },
   });
+
+  return {
+    create,
+  };
 }

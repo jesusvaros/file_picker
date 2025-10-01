@@ -1,4 +1,4 @@
-import type { SelectedResource } from "@/app/api/stackai/utils";
+import type { SelectedResource } from "@/domain/resource";
 import { useCallback, useState } from "react";
 
 interface UseSelectionStateProps {

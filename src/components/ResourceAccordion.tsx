@@ -1,8 +1,10 @@
-import { type Paginated, type Resource, type SelectedResource } from "@/app/api/stackai/utils";
-import { useChildren } from "@/app/hooks/useChildren";
-import { useKbChildren } from "@/app/hooks/useKbChildren";
-import { useKbDeleteResource } from "@/app/hooks/useKbDeleteResource";
-import { type SortDirection, type SortKey } from "@/app/hooks/useSortState";
+import type { Paginated } from "@/domain/pagination";
+import type { Resource, SelectedResource } from "@/domain/resource";
+import { useConnectionChildren } from "@/hooks/useConnectionChildren";
+import { useKnowledgeBaseChildren } from "@/hooks/useKnowledgeBaseChildren";
+import { useKnowledgeBaseDelete } from "@/hooks/useKnowledgeBaseDelete";
+import { type SortDirection, type SortKey } from "@/hooks/useSortState";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Accordion,
   AccordionContent,
@@ -12,7 +14,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FileIcon } from "./FileIcon";
 import { IndexedBadge } from "./IndexedBadge";
 import { ResourceItem } from "./ResourceItem";
@@ -58,7 +60,10 @@ export function ResourceAccordion({
   sortKey = "name",
   sortDirection = "asc",
 }: ResourceAccordionProps) {
+  const queryClient = useQueryClient();
   const { resource_id, inode_type, inode_path } = item;
+
+  const [hasRequestedChildren, setHasRequestedChildren] = useState(false);
 
   // Memoize KB item lookup to avoid expensive array operations on every render
   const kbItem = useMemo(() => {
@@ -71,10 +76,10 @@ export function ResourceAccordion({
   }, [kbItem]);
 
   // Only fetch children when it's a directory (accordion will handle lazy loading)
-  const shouldFetchChildren = inode_type === "directory";
-  const { mutate: deleteResource } = useKbDeleteResource({
+  const shouldFetchChildren = inode_type === "directory" && hasRequestedChildren;
+  const { mutate: deleteResource } = useKnowledgeBaseDelete({
     page: null,
-    resource_path: inode_path.path,
+    resourcePath: inode_path.path,
     parentResourcePath: parentResourcePath ?? "",
   });
 
@@ -82,20 +87,50 @@ export function ResourceAccordion({
     data: directoryChildren,
     isPending: isLoadingChildren,
     error: childrenError,
-  } = useChildren({
+  } = useConnectionChildren({
     connectionId: connectionId,
     currentResourceId: resource_id,
     page: null,
-    enabled: shouldFetchChildren, // Only fetch when we actually need it
+    enabled: shouldFetchChildren,
     sortKey,
     sortDirection,
   });
 
-  const { data: directoryChildrenKb } = useKbChildren({
+  const { data: directoryChildrenKb } = useKnowledgeBaseChildren({
     page: null,
     resourcePath: inode_path.path,
     enabled: shouldFetchChildren,
   });
+
+  useEffect(() => {
+    if (inode_type === "directory" && isSelected) {
+      setHasRequestedChildren(true);
+    }
+  }, [inode_type, isSelected]);
+
+  const prefetchChildren = useCallback(() => {
+    if (!connectionId || inode_type !== "directory") return;
+    const searchParams = new URLSearchParams();
+    searchParams.set("connectionId", connectionId);
+    searchParams.set("resourceId", resource_id);
+
+    queryClient.prefetchQuery({
+      queryKey: [
+        "connection-children",
+        connectionId,
+        resource_id,
+        null,
+      ],
+      queryFn: async () => {
+        const response = await fetch(
+          `/api/stackai/children?${searchParams.toString()}`,
+        );
+        if (!response.ok) throw new Error("Error prefetching children");
+        return response.json();
+      },
+      staleTime: 30_000,
+    });
+  }, [connectionId, inode_type, queryClient, resource_id]);
 
   // Register items when they load
   useEffect(() => {
@@ -174,7 +209,15 @@ export function ResourceAccordion({
               />
             </div>
 
-            <AccordionTrigger className="w-full flex-1 justify-between p-3 pl-0 hover:no-underline">
+            <AccordionTrigger
+              className="w-full flex-1 justify-between p-3 pl-0 hover:no-underline"
+              onMouseEnter={prefetchChildren}
+              onClick={() => {
+                if (!hasRequestedChildren) {
+                  setHasRequestedChildren(true);
+                }
+              }}
+            >
               <div className="flex w-full items-center gap-2">
                 <span className="text-base font-medium">{inode_path.path}</span>
 

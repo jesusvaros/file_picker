@@ -1,4 +1,5 @@
-import type { Paginated, Resource, SelectedResource } from "@/app/api/stackai/utils";
+import type { Paginated } from "@/domain/pagination";
+import type { Resource, SelectedResource } from "@/domain/resource";
 import { useCallback, useMemo, useState } from "react";
 
 interface UseSelectionEffectsProps {
@@ -15,7 +16,7 @@ export function useSelectionEffects({
   >(new Map());
 
   // Calculate indexed resources (already indexed items from KB) - these are the default selections
-  const indexedResources = useMemo(() => {
+  const indexedResources = useMemo<SelectedResource[]>(() => {
     if (!childrenKb?.data || !items?.length) {
       return [];
     }

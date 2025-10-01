@@ -1,17 +1,22 @@
 "use client";
-import { useAppContext } from "@/app/providers";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Paginated, Resource } from "../api/stackai/utils";
 
-export function useKbChildren({
-  page,
-  enabled = true,
-  resourcePath,
-}: {
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { Paginated } from "@/domain/pagination";
+import type { Resource } from "@/domain/resource";
+import { useAppContext } from "@/app/providers";
+
+export type UseKnowledgeBaseChildrenParams = {
   page?: string | null;
   enabled?: boolean;
   resourcePath: string;
-}) {
+};
+
+export function useKnowledgeBaseChildren({
+  page,
+  enabled = true,
+  resourcePath,
+}: UseKnowledgeBaseChildrenParams) {
   const { kbId: kbIdCtx } = useAppContext();
   const qc = useQueryClient();
 

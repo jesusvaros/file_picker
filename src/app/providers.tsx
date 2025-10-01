@@ -7,10 +7,11 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useState,
   type ReactNode,
 } from "react";
+
+import { useRouteState } from "@/hooks/useRouteState";
 
 type AppContextType = {
   kbId: string | null;
@@ -32,27 +33,19 @@ export function Providers({ children }: { children: ReactNode }) {
         },
       }),
   );
-  const [kbId, setKbIdState] = useState<string | null>(null);
+  const [kbIdParam, setKbIdParam] = useRouteState("kbId");
 
-  useEffect(() => {
-    try {
-      const id = localStorage.getItem("knowledge_base_id");
-      if (id) setKbIdState(id);
-    } catch {}
-  }, []);
-
-  const setKbId = useCallback((id: string | null) => {
-    setKbIdState(id);
-    try {
-      if (id) localStorage.setItem("knowledge_base_id", id);
-      else localStorage.removeItem("knowledge_base_id");
-    } catch {}
-  }, []);
+  const setKbId = useCallback(
+    (id: string | null) => {
+      setKbIdParam(id);
+    },
+    [setKbIdParam],
+  );
 
   return (
     <QueryClientProvider client={client}>
       <Analytics />
-      <AppContext.Provider value={{ kbId, setKbId }}>
+      <AppContext.Provider value={{ kbId: kbIdParam, setKbId }}>
         {children}
       </AppContext.Provider>
       <Toaster />

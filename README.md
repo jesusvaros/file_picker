@@ -28,10 +28,11 @@ A modern, intuitive file picker interface for Google Drive connections with know
 
 ## 🏗️ Architecture
 
-- **Single Responsibility**: Each component handles one specific task
-- **React Query**: Server state caching and background updates
-- **localStorage**: Persists connections, KB state, and hidden files
-- **Optimistic Updates**: Immediate UI feedback with error rollback
+- **Layered Domains**: Business types live in `src/domain`, HTTP clients in `src/services`, and sharable utilities in `src/lib`
+- **Feature Slices**: Explorer, knowledge-base, and selection logic sit under `src/features/*` for clear ownership
+- **URL State Management**: `useRouteState` replaces `localStorage`, keeping connection, KB, and visibility state in the URL
+- **React Query + Suspense**: Data hooks opt into optimistic cache updates and are wrapped with error/suspense boundaries
+- **Prefetch & Optimism**: Hover prefetch warms child folders while mutations stay optimistic with graceful rollback
 
 ## 🚀 Getting Started
 
@@ -89,11 +90,32 @@ A modern, intuitive file picker interface for Google Drive connections with know
 
 ## 🎯 Key Components
 
-- **ResourceList**: Main file display and selection container
-- **ResourceAccordion**: Hierarchical folder navigation with lazy loading
-- **useNestedResourceSelection**: Complex selection logic with parent-child relationships
-- **useCreateKbWithResources**: Knowledge base creation with optimistic updates
-- **useGlobalLoadedSearch**: Cached search without additional API calls
+- **ExplorerView**: Top-level explorer experience used on `/explorer`
+- **ExplorerToolbar & ExplorerTree**: Reusable UI for both explorer and `/kb/[kbId]`
+- **useExplorer / useKnowledgeBase**: Data hooks that compose queries, selection, and URL state
+- **useResourceSelection**: Feature-scoped selection engine with dedupe + backend payload helpers
+- **useKbMutations**: Handles knowledge base creation and sync with staging cache updates
+
+## 🧭 Routes
+
+- `/` – landing page
+- `/explorer` – connection explorer powered by `ExplorerView`
+
+## 🗂️ Structure Overview
+
+```
+src
+├─ app/
+│  └─ explorer/page.tsx
+├─ domain/
+├─ features/
+│  ├─ explorer/
+│  ├─ kb/
+│  └─ selection/
+├─ hooks/
+└─ services/
+   └─ stack/
+```
 
 ## 🚀 Live Demo
 

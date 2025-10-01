@@ -1,4 +1,4 @@
-import type { Resource, SelectedResource } from "@/app/api/stackai/utils";
+import type { Resource, SelectedResource } from "@/domain/resource";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
@@ -13,12 +13,14 @@ export function useDeDupSelection({
   selectedResources,
   setSelectedResources,
 }: UseDeDupSelectionProps) {
-
   const toggleSelected = useCallback(
     (id: string) => {
       setSelectedResources((prev) => {
         const item = availableItemsMap.get(id);
-        if (!item) return prev;
+        if (!item) {
+          toast.error("Unable to locate resource for selection");
+          return prev;
+        }
 
         const isSelected = prev.some((x) => x.resource_id === id);
         const newItem = {
@@ -27,13 +29,9 @@ export function useDeDupSelection({
           path: item.inode_path.path,
         };
 
-        if (isSelected) {
-          // Remove item
-          return prev.filter((x) => x.resource_id !== id);
-        } else {
-          // Add item
-          return [...prev, newItem];
-        }
+        return isSelected
+          ? prev.filter((x) => x.resource_id !== id)
+          : [...prev, newItem];
       });
     },
     [availableItemsMap, setSelectedResources],
@@ -42,13 +40,13 @@ export function useDeDupSelection({
   const getResourcesForBackend = useCallback(() => {
     return selectedResources.filter((selected) => {
       if (selected.inode_type === "file") return true;
-      
+
       // Only include directories that aren't children of other selected directories
       return !selectedResources.some(
         (other) =>
           other.resource_id !== selected.resource_id &&
           other.inode_type === "directory" &&
-          selected.path.startsWith(other.path + "/"),
+          selected.path.startsWith(`${other.path}/`),
       );
     });
   }, [selectedResources]);

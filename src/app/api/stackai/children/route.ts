@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Paginated, type Resource, stackFetch } from "../utils";
+
+import { fetchConnectionChildren } from "@/services/stack/resources";
 
 export async function GET(req: NextRequest) {
   const connectionId = req.nextUrl.searchParams.get("connectionId");
@@ -13,14 +14,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const q = new URLSearchParams();
-  if (resourceId) q.set("resource_id", resourceId);
-  if (page) q.set("page", page);
-
-  const path =
-    `/connections/${connectionId}/resources/children` +
-    (q.toString() ? `?${q.toString()}` : "");
-
-  const data = await stackFetch<Paginated<Resource>>(path);
+  const data = await fetchConnectionChildren(connectionId, {
+    resourceId: resourceId ?? undefined,
+    cursor: page,
+  });
   return NextResponse.json(data);
 }

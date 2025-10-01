@@ -1,12 +1,12 @@
-import type { Resource } from "@/app/api/stackai/utils";
-import { getResourceName } from "@/app/api/stackai/utils";
+import type { Resource } from "@/domain/resource";
+import { getResourceName } from "@/lib/resource-path";
 import { FileIcon } from "./FileIcon";
 import { format, parseISO } from "date-fns";
 
 interface SearchResultsProps {
   searchResults: Resource[];
   searchQuery: string;
-  softDelete: ({ resourceId }: { resourceId: string }) => void;
+  softDelete?: ({ resourceId }: { resourceId: string }) => void;
 }
 
 export function SearchResults({
@@ -26,7 +26,7 @@ export function SearchResults({
           >
             <FileIcon
               isDirectory={item.inode_type === "directory"}
-              onDelete={() => softDelete({ resourceId: item.resource_id })}
+              onDelete={() => softDelete?.({ resourceId: item.resource_id })}
             />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">{name}</div>

@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { stackFetch, type StackConnection } from "../utils";
+
+import { fetchStackConnections } from "@/services/stack/connections";
 
 export async function GET() {
-  const data = await stackFetch<StackConnection[]>(
-    `/connections?connection_provider=gdrive&limit=10`,
-  );
+  const data = await fetchStackConnections();
   return NextResponse.json(data);
 }
